@@ -1,0 +1,12 @@
+datasets/raw/
+datasets/processed/
+__pycache__/
+*.pyc
+.DS_Store
+*.pkl
+*.h5
+*.pt
+*.pth
+*.npy
+*.npz
+wandb/

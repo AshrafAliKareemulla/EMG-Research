@@ -18,7 +18,8 @@
       "PowerShell(Join-Path *)",
       "PowerShell(Get-ChildItem *)",
       "PowerShell(Test-Path *)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(pdfinfo \"E:/sEMG Research Enhanced/literature-review-papers/conferences-and-journals-complete-list/20_Dataset_IEEE_Command_Search/papers/ieee_10242547.pdf\")"
     ]
   }
 }

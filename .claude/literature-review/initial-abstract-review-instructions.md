@@ -54,9 +54,10 @@ Sub-agents are the moving part in the middle: one agent per paper produces one s
 ├── papers/                                   # PDFs (not needed for abstract screening)
 ├── abstract_screening/                       # ◄ created by prep_screening.py
 │   ├── batch_inputs/
-│   │   ├── batch_1.json                      # array of {paper_id, title, year, authors, doi, abstract}
+│   │   ├── batch_1.json                      # array of {paper_id, title, year, authors, doi, abstract, pdf_link}
 │   │   ├── batch_2.json
 │   │   └── ...
+│   ├── pdf_links.json                        # paper_id -> pdf_link, side-channel for the builder
 │   └── agent_returns/
 │       ├── <prefix>-001.json                 # one per paper, schema in §4
 │       ├── <prefix>-002.json

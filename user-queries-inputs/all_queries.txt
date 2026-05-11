@@ -1,0 +1,688 @@
+actually u know what, i am doing reserach in my field which classification of surface emg signals using both machine learning and deep learning techniques and i am going to use the help of claude code for it.
+my main concern is how do i structure my repository such that i can do the literature review, have the datasets folder ready, my experiments folder, and observations, plans and state of the entire repo updated regularly. I want to harness the power of claude code like utilizing the claude.md files in the parent repo, then i will have literature review folder i myself give claude the papers (like initially i give the titles + abstracts of many conferences and pphase 1 tell the claude to systematically review what papers needs to have deeper review which sets my goals) here claude should update the state regularly, like if i open a new session everytime, claude should somehow figure it out that there were 2 stages of review and later claude has figured out x number of papers and those results kind of a summary is present in some directory. Now onto the next part, the state.md or someother file will have further instructions on what to do next.
+
+So if you see the context i have framed above, any claude session which is starting new will be able to quickly go through it and realize what has happend and how clean and structured everything is. did u get my point what i am trying to figure out here using structured markdown files and time to time updations ?? 
+So i am trying to figure out a way to use claude code to help me in my research work in a way that claude is able to understand the context and state of the repo and can help me in a way that i can use it for my research work. 
+And how to properly structure all the components in this repository. I will give you my background and my familiarity with semg research.
+I have done my btech with honors where my research topic was classification of semg signals especially for ADL (activities of daily living) signals using both
+traditional machine learning and deep learning techniques. I have familiarity with preprocessing of signals, feature extraction and classification using various machine learning algorithms. 
+And did few with transformers but without any feature extraction steps and tried to improve accuracy only using raw semg signals. But the accuracy was bit low.
+So, now my entire goal is like 2 sets of experiments. First is to see how well can we do with traditional machine learning techniques with feature extraction and all. 
+Second is to see how well can we do with deep learning techniques with feature extraction and all. I will explain in detail, like i want to understand what all feature extraction 
+techniques are present currently in case of emg signals and what is its impact, like i want to know all the different types of preprocessing steps and feature extraction steps and try out few combinations using 
+traditional features like mixing multiple feature and test it, and at last can we identify a single best combination of preprocessing and feature extraction steps for traditional machine learning. And which ml ago does best, tradeoffs, etc questions needs to be answered.
+So this first round of experiments will be done using traditional machine learning algorithms and feature extraction techniques. Almost everything should be covered here leaving no stone untunred in this space because i want to wrap up my research of ML algorithms for semg especially for our dataset.
+And here one more thing is that, currently very few datasets are available for semg signals especially adl activities like our emaha datasets, ninapro, biopatrec, so i also want to spend some research doing what all datasets are available and what are the differences between them and how can we use them for our research work. And gather all the datasets into one single folder.
+
+The second set of research is the dl techniques, here there are lots and lots of techniques like transfer learning, distillation, traditional cnn + bilstms, ann, transformers, fetaure extraction using cnn + transformers in different forms, fourier transforms, wavelet tranforms combined with advanced deep learning architectures, any llms in signals space where we can use 
+the pretrained llm models and fine tune for our dataset and answer some critical engineering questions (like what are we trying to achieve here ?) What preprocessing steps are there, feature extractions using deep learning, normalization steps etc etc.
+Some engineering questions that we are trying to figure out are as follows (both for ml and dl):
+what are the best models for each dataset (ADL dataset)
+Is there a single model + ML/DL architectures -> decent perf on all of them (ADL Net)
+Feature Extraction + Model
+How far does it deviate from the best models
+Single Model: Delta how much does it deviate from the best model
+LOSO Leave one subject out, (ML/DL) -> Fine Tuning, How does it perform on unseen subjects and how does it adapt. What are the tradeoffs here.
+If ml is good why dl methods ?
+Can we built a robust deep learning, 
+LOSO performance even in classical ML and DL
+Any other specific scientific questions that can be answered ?? (like loso or any other questions)
+Cross Domain Transfer Learning
+Can we use dimension reduction techniques like pca, software (tsfresh), sfs algorithms (Sequential Feature Selector), and similar poppular methods to reduce the feature space and see how it impacts the performance of the models ?
+
+So this is the entire scope of my research. I want each and every thing to be logged performed across directories and sub directories so that when i open a new claude session, claude should immediately know which all files to look at and which all files to ignore and what are its exact next steps in doing the task.
+Here the entire literature review is done on the above engineering questions like what all has been done in this space and what are the current state of the art methods and what are the gaps in the current research and how can we address them. This is only for literature review and we might have a separate markdown file for it.
+So did you get my point here on how i am trying to structure my repo and how i want claude to help me in doing my research work ? I want your complete help in setting up .claude/ folder, CLAUDE.md file, state.md files, literature-review.md files, and user-requirements.md file, and any other files if you want to suggest 
+and tell claude how to setup state.md files like what process has been made and what is the next steps in simple steps and anyother sub-directories, anyother markdown files you would suggest, and where to organize them all, etc etc you have to help me with it please.
+Think like a proper researcher and how a researcher would setup his repo for doing quality research work withoout any jargon and confusions. Clear structure and code, clear instructions, clear goals, clear state of the repo, clear next steps, etc etc.
+There are currently 3 repos in my parent dir, literature-review-papers, semg-datasets and user-queries-inputs.
+Please think hard, reason, reiterate, analyze my requirements, use the best resoruces you can think of and scalable things and come up with a plan to setup .claude/ folder, CLAUDE.md file, state.md files, literature-review.md files, and user-requirements.md file, and any other files if you want to suggest 
+and tell claude how to setup state.md files like what process has been made and what is the next steps in simple steps and anyother sub-directories, anyother markdown files you would suggest, and where to organize them all, etc etc you have to help me with it please.
+
+
+
+
+go through the entire repository (do not read any research papers if present in the repos, ignore them for now), and
+let me know did you understand how to setup sessions, plans, how to create short markdown files so that you will read
+only the necessary context and not the complete repo for every new session ?? ask me clearly if you have any doubts,
+pls think hard, take your time, reason, reiterate, think, analyze and only then respond what you understood how to
+structure the repo, this is very important to structure the repo as this repo will used for the next 6 months for
+research so i want every single detail to be perfect and tracked properly and claude should know what to do when i
+start a new session
+
+
+
+
+go through the entire repo and understand what kind of emg research i am interested in and what we need to do. Your
+task is now to go through the entire literature review of papers from 19 different ieee
+@literature-review-papers\conferences-and-journals-complete-list\ and here go through each and every title and its
+abstract  and classify into what problem statement it is for example go through the 1st conference excel sheets and
+understand what it is referring to, similarly for the rest of the conf and journals listed, you will find only papers
+related to emg (i have applied advanced search in ieee xplore to search for the words "emg" and "semg", etc in
+document title and abstract to filter out the papers), so you might be seeing some unrelated papers here and there
+and its completely fine, flag such papers as completely unrelated and not useful. I am actually more interested
+towards classifications labels like 1. if the paper is about a emg dataset, flag such papers as dataset, 2. If the
+paper is about usage of machine learning algos to classify semg signals, classify it as something like ML + sEMG, 3.
+If papers are related to HDemg, it is not much useful, so flag them appropriately if they are useful or not because
+we will be focusing only on sEMG signals classification by various datasets and various methods, 4. If it is a review
+paper of all methods and datasets related to semg, flag it as review paper, 5. If deep learning techniques and
+architectures are used like tranformers, mamba, lstms, cnn, ann, etc to classify sEMG signals, label them
+appropriately. 6. If the paper is about any preprocessing techniques for semg, data augmentation, statistical view of
+the signals, filtering technquies, or something where the signal is bit modified or done something, flag them
+appropriately, simialr 7. If the signal is used to extract features like time domain, frequency domain, wavelet , etc
+flag them separately, 8. If some advanced techniques like fine tuning, cross subject learning, etc etc are used,
+flag them appropriately, similalrly i want you to identify diffferent types of all cases which are possible and
+classify them and create a clean and neat excel sheet and keep in each conf/journal folders properly by including
+various hints and keywords (just think of it and think what needs to be done). This has to be done for each folder in
+that journals/conf list folder, so you can run parallel agents each for one folder or each for 2 folders and you
+must pass all the context to it, do NOT run the agents without passing the complete context, it has to know my
+background, what i did, what i have worked upon and what i am asking it to do, etc etc information. So, first create
+a detailed markdown file or update any markdown file in this literature folder with the above requests of mine and do
+the parallel agents properly. Let me know if you have any questions or doubts, and think ultra hard, before you
+output anything or do anything, first udnerstand the purpose, the repo, whats been there and what needs to be done,
+do not directly jump into any action stated in any state.md file, just do what i have asked here to do and properly
+reason, reiterate, think, analyze, find out whats needs to be done. Think ultra hard
+
+
+
+Hi claude, so what I want to do is like I want you to go through the complete automation folder and the files you have access to and like ignore the PDF papers for now and there is an experiment going on in one of the directors exp1/ so in that experiment like we had chosen a base paper for text to sequel. So I want you to go through the complete based paper and answers observations and everything and also we revised up with like what observations from the previous experiments with it. First understand like what is the repository about what is the experiment setup? Why is the experiments at a what was the base paper that was choose choose and and understand the complete repository first of the experiment folder and then you try to reason think and analyze. So I want to I want you to go through the complete state and observations file in that experiment folder and like I have completed the training of third and fourth Notebook in the notebooks folder and I have also at that all the results in the results folder of these notebooks and I want you to go through the complete. I want you to go through the go through each and every cell of The Notebook and find out like what is happening and what was the result, how are the results like and note on your observations and update the state and observation analyse and reason and also like let me know the next steps go through the complete script folder like each and every python file in that directory and also let me know what to run in order and what files to copy from my window system to GPU system. Think, reason, reiterate, understand the tradeoffs, analyze, build, then execute with confidence, think ultra hard. Let me know if you have any doubts or questions related to the experiment. And what are the next steps list me down the exact number of files that I have to run and in which order ?Take your time, analyze the results, brief me reagrding the results and let me know the next steps.
+
+
+
+
+
+
+
+
+
+
+
+ Repo snapshot
+
+  Goal: publishable Text-to-SQL paper at ACL/EMNLP/NAACL Findings 2026 on a single 24GB Quadro RTX 6000 (Turing sm_75).
+  Dev on Windows, GPU runs on Linux via AnyDesk.
+
+  Base paper: DTS-SQL (EMNLP 2024 Findings) — two-stage decomposed pipeline (schema linker → SQL generator), both
+  separately LoRA-fine-tuned. You swapped DeepSeek-Coder-7B → Qwen2.5-Coder-7B-Instruct, LoRA r=64, fp16, SDPA,
+  grad-checkpoint, NEFTune α=5.
+
+  Pipeline evolution: baseline → evidence-aware (BIRD evidence + column descriptions, sample rows dropped) →
+  value-linking (MinHash-LSH) → SC@8 → exec-feedback retry. Week 2 scripts (08_cot/, 09_dpo/) written but not yet
+  executed.
+
+  Current results
+
+  ┌───────────────────────────────┬─────────────────────────┬────────┬─────────────┐
+  │             Bench             │       Best config       │   EX   │  vs paper   │
+  ├───────────────────────────────┼─────────────────────────┼────────┼─────────────┤
+  │ Spider dev (official)         │ SC@4 + exec feedback    │ 79.5%  │ −6.0 pp     │
+  ├───────────────────────────────┼─────────────────────────┼────────┼─────────────┤
+  │ BIRD dev (greedy)             │ no-evidence baseline    │ 31.81% │ −24.0 pp    │
+  ├───────────────────────────────┼─────────────────────────┼────────┼─────────────┤
+  │ BIRD dev (evidence-aware)     │ greedy                  │ 42.57% │ −13.2 pp    │
+  ├───────────────────────────────┼─────────────────────────┼────────┼─────────────┤
+  │ BIRD dev (full Week-1 stack)  │ ev + VL + SC@8 + execfb │ 44.20% │ −11.6 pp    │
+  ├───────────────────────────────┼─────────────────────────┼────────┼─────────────┤
+  │ Oracle over 5 Week-1 variants │ —                       │ 47.83% │ upper bound │
+  └───────────────────────────────┴─────────────────────────┴────────┴─────────────┘
+
+  Diagnostics already ruled out (Spider Phase A): overfitting, pipeline bug, MiniLM embedder, SL LR fix (5e-5 vs paper
+  1e-5 — actually hurt). The 6pp Spider gap is base-model + undisclosed paper recipe; not cheaply closable.
+
+  What I'd do to push accuracy (prioritized)
+
+  1. Execute Week 2 as planned — this is the only lever left that touches the oracle ceiling.
+  The 47.83% oracle bound proves inference-only techniques are saturated; only retraining opens headroom. 08_cot/ +
+  09_dpo/ scripts are ready. Order: CoT-SFT first (ACL 2025 "Uncovering CoT for DPO" showed plain SQL-pair DPO regressed
+   6/10 LLMs; CoT-DPO did not).
+
+  2. Fix card_games (191 rows = 12.5% of dev, 14.7% EX, ~4.4pp global cost).
+  28 rows output degenerate \n\n\n…, 99 pred_failed, SL hallucinates mtg_cards/MagicCardsInfo. Cheap investigations
+  before Week 2:
+  - Raise max_seq_length to 2400–2800 for this DB; check if schema is truncated.
+  - Hand-audit 20 card_games train rows — is the DB under-represented or name-casing confusing the tokenizer?
+  - Try a --skip-sl full-schema fallback for card_games only at inference; removes the hallucination vector.
+
+  3. Retrain gen with VL-annotated prompts (not inject at inference).
+  Current VL adds +54 pred_failed rows and REGRESSES challenging tier by 1.38pp — because the SFT gen never saw VL-style
+   schemas. Roll the MinHash injections into the 05_evidence_aware/preprocess_with_evidence.py output, retrain gen for 1
+   epoch. Should convert VL from a +0.6pp marginal gain to the literature's +3-5pp.
+
+  4. Schema-linker DPO before gen DPO.
+  23.1% of BIRD dev has SL recall<1, and on those rows EX collapses to 10.7%. Even a modest SL-recall lift propagates.
+  Your plan already has this on Day 6 — I'd move it earlier (right after CoT-SFT, before gen DPO) so gen DPO trains on
+  better-filtered schemas.
+
+  5. Train a small ORM verifier for best-of-N instead of majority vote.
+  Oracle-over-5 = 47.83% on a 44.20% base — 3.6pp of pure routing headroom. A 1.5B–3B verifier trained on (SQL,
+  executes_correct) pairs harvested during CoT-SFT sampling can reclaim most of it. Currently Week 3 stretch; consider
+  promoting if Week 2 lands at 48–50%.
+
+  6. Evidence-formula DBs (california_schools, 23.6% EX, −4.5pp from VL).
+  These queries need arithmetic formulas from evidence (e.g., Free Meal Count / Enrollment). Add 2-3 few-shot
+  formula-translation examples in the SQL-gen prompt for rows whose evidence contains arithmetic operators (/, *, +, -,
+  %). ~1 day, purely prompt engineering.
+
+  7. DoRA flag on all Week-2 retrainings (+0.5–1.5pp, +10–20% VRAM).
+  DTS-SQL-tier work, cheap to turn on per DoRA ICML 2024.
+
+  Not worth pursuing (based on your own evidence): SL LR fix (ruled out on Spider), embedder swap (noise), raw-text
+  format retrain (assumed null), GRPO/full RL (24GB OOM risk), 70B distill (HW ceiling).
+
+  Realistic BIRD projection if (1)+(2)+(3) land cleanly: 50–54% — on-target for the paper's "competitive at 24GB"
+  framing. Stretch with (4)+(5): 54–58%.
+
+  Want me to start on any of these — e.g., draft the card_games targeted-investigation script, or roll VL into the
+  training preprocessor?
+
+✻ Brewed for 2m 11s
+
+※ recap: Goal is a publishable Text-to-SQL paper on 24GB GPU; current BIRD dev is 44.20% after Week-1 inference stack,
+  target 53-54%. Next action is executing Week 2 CoT-SFT then CoT-DPO using the already-written scripts in 08_cot/ and
+  09_dpo/. (disable recaps in /config)
+
+❯ there is a new model of qwen like "Meet Qwen3.6-35B-A3B：Now Open-Source！🚀🚀
+  A sparse MoE model, 35B total params, 3B active. Apache 2.0 license.
+
+  🔥 Agentic coding on par with models 10x its active size
+  📷 Strong multimodal perception and reasoning ability
+  🧠 Multimodal thinking + non-thinking modes
+
+  Efficient. Powerful. Versatile. Try it now👇
+  Blog：https://lnkd.in/gvQNBNDf
+  Qwen Studio：https://chat.qwen.ai
+  HuggingFace：https://lnkd.in/gZVBdXRN
+  ModelScope：https://lnkd.in/gCbpMYKn
+  ", here can we use this model ?? i know 35B is a lot, but i have also found triattention mechanism MIT and NVIDIA
+  just proved that long context reasoning no longer requires a server farm. With TriAttention, you can now run a 32B
+  model on a single 24GB RTX 4090.
+   so can you do a web search and reason the results and can you give me a briefing abt this, will it be useful for our
+   work or are there any other opensource models came recently, think ultra hard
+
+● Let me research these claims — the Qwen3.6 naming and "TriAttention on 4090" claims need verification, and I want to
+  ground recommendations in our specific Turing sm_75 constraint.
+
+● Agent(Research Qwen3.6-35B-A3B, TriAttention, recent T2S models)
+  ⎿  Done (16 tool uses · 43.8k tokens · 2m 2s)
+  (ctrl+o to expand)
+
+● Briefing
+
+  Qwen3.6-35B-A3B — real, but wrong fit for us
+
+  Released 2026-04-16 (yesterday). Confirmed: 35B total / 3B active MoE, 256 experts, Apache 2.0, hybrid Gated-DeltaNet
+  + Gated-Attention architecture, native BF16.
+
+  Why it's a no-go for our Quadro RTX 6000:
+  - BF16-native on Turing sm_75 = fp32 emulation → slow and numerically unstable
+  - Kernels for Gated-DeltaNet/Gated-Attention are brand new; vLLM/SGLang Turing support for this architecture is
+  untested
+  - LoRA VRAM math: 35B × 4-bit ≈ 17.5GB weights alone; training activations across MoE experts + optimizer + LoRA
+  pushes realistic need to 28–40GB. Won't fit on 24GB for fine-tuning.
+  - 4-bit inference might fit but isn't proven on Turing for this architecture
+
+  TriAttention (arXiv 2604.04921, Song Han MIT + NVIDIA, Apr 2026) — real, but irrelevant for training
+
+  The "32B on 24GB" line is marketing slippage. What TriAttention actually does: KV-cache compression for long-context
+  inference only (2.5× throughput, 10.7× KV memory reduction on 32K-token reasoning). It does not shrink weights, does
+  not help LoRA fine-tuning, and for T2S prompts (~2K tokens) KV cache isn't our bottleneck anyway. Also, its fast path
+  likely wants FA2 (Ampere+), so Turing compatibility is questionable. Skip.
+
+  The actual game-changer: Arctic-Text2SQL-R1-7B (Snowflake, Apache 2.0)
+
+  We already cited this in state.md as "64× H100-trained SOTA 68.9% BIRD" — but we ruled it out because we assumed it
+  meant training GRPO ourselves. We missed that Snowflake released the weights.
+
+  - HF: Snowflake/Arctic-Text2SQL-R1-7B
+  - Base: Qwen2.5-Coder-7B → drops onto our Turing stack as-is (fp16, SDPA)
+  - 68.9% BIRD dev reported, vs our 44.20%
+  - Can be LoRA-fine-tuned further on 24GB
+
+  This single finding potentially reshapes the plan. Two honest options:
+
+  Path 1 (safe, original plan): Continue Week 2 (CoT-SFT + CoT-DPO on our evidence-aware ckpt). Target 48–54%. Paper
+  framing: "reproducible recipe at 24GB". Risk: a 50% paper sits awkwardly next to a publicly-available 68.9% checkpoint
+   that runs on the same hardware.
+
+  Path 2 (higher ceiling, pivot): Take Arctic-R1 as the starting checkpoint, then stack our contributions on top —
+  decomposed schema linking, value-linking (fixing the VL-at-training issue from earlier), SC@8, exec-feedback,
+  stage-wise DPO. Target 72%+. New paper framing: "what additional techniques still lift a frontier-RL 7B model on BIRD,
+   at 24GB budget". Novelty = the ablation on a SOTA base, not the base itself.
+
+  Two other useful open-source drops to know about
+
+  - OmniSQL's SynSQL-2.5M dataset (Apache 2.0) — public CoT-augmented T2S training corpus. Removes our "Day 6: generate
+  CoT data via GPT-4o API ($50-150)" step; just filter + subsample.
+  - DeepSeek-R1-Distill-Qwen-7B / 14B (MIT license) — reasoning-distilled, drop-in Turing-compatible. A cheap
+  alternative teacher for CoT rationales if we keep the Qwen2.5-Coder-7B base.
+
+  My recommendation
+
+  Before committing more GPU to Week 2 on the current base, spend ~2 hours on a cheap validation: download Arctic-R1,
+  run eval_evidence_aware.py --gen-dir <arctic-r1-path> on BIRD dev greedy. If it reproduces ≥65% on our eval harness,
+  pivot to Path 2 — that's the strongest paper we can write on this hardware. If it underperforms (eval harness
+  mismatch, missing value-linking step they used, etc.), stay on Path 1 and proceed with CoT+DPO as planned.
+
+  Want me to draft that 2-hour Arctic-R1 validation run, or wait for your call on direction?
+
+✻ Cogitated for 3m 52s
+
+❯  setup a directory for phase2 in scripts folder and create a ipynb file with all the python .py files running one by
+  one in order and also tell me what files to copy from this system to my gpu system and what else to keep in mind for
+  running this and what to copy back after results completion
+
+● I'll scaffold a validation-focused Phase 2 for Arctic-Text2SQL-R1-7B. First, let me read the existing eval pattern and
+   config so the new scripts fit cleanly.
+
+  Read 4 files (ctrl+o to expand)
+
+● I have everything I need. Creating the Phase 2 directory now.
+
+● Write(research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\README.md)
+  ⎿  Wrote 67 lines to research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\README.md
+      1 # 10_phase2_arctic/ — Arctic-Text2SQL-R1-7B validation
+      2
+      3 ## Why this phase exists
+      4
+      5 `state.md` already cites Arctic-Text2SQL-R1-7B (Snowflake, arXiv 2505.20315,
+      6 Apache 2.0) as the 7B BIRD SOTA at **68.9% EX** — but we never tried the
+      7 released checkpoint. Our best BIRD is 44.20% (Week-1 stacked). If Arctic-R1
+      8 reproduces on our eval harness, the publication plan changes: we stack our
+      9 techniques on top of Arctic-R1 instead of our DTS-SQL evidence baseline.
+     … +58 lines (ctrl+o to expand)
+
+● Write(research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\01_download_arctic.py)
+  ⎿  Wrote 66 lines to
+     research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\01_download_arctic.py
+       1 #!/usr/bin/env python
+       2 """
+       3 Phase 2 — Step 1: Download Arctic-Text2SQL-R1-7B weights from HuggingFace.
+       4
+       5 CPU-only. Takes 20-40 min depending on bandwidth (~15 GB model).
+       6
+       7 Idempotent — snapshot_download skips files that already match the remote
+       8 revision's SHA. Safe to re-run.
+       9
+      10 Usage (on Linux GPU box):
+     … +56 lines (ctrl+o to expand)
+
+● Write(research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\02_smoke_test_arctic.py)
+  ⎿  Wrote 178 lines to
+     research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\02_smoke_test_arctic.py
+      1 #!/usr/bin/env python
+      2 """
+      3 Phase 2 — Step 2: Smoke-test Arctic-Text2SQL-R1-7B on 5 BIRD dev rows.
+      4
+      5 Verifies:
+      6 - Model loads in fp16 on Turing sm_75 (no bf16, no FA2)
+      7 - Generation completes without OOM at batch=1, max_new_tokens=1024
+      8 - Output parses correctly via parse_sql_generator_output
+      9 - Produces a SQL string for a real BIRD question
+     … +168 lines (ctrl+o to expand)
+
+❯ and remember, i have already have some scripts running for week2, so do not disturb any files regarding that, you can
+   just keep all the files needed for phase2 in that directory itself without modifying any files which was used
+  earlier training script of week2 and also update the state and observations accordingly after completion
+
+● Understood — keeping Phase 2 self-contained in this directory only, no edits to src/ or week 2 files. Continuing with
+  the eval script + notebook + state/obs updates.
+
+● Write(research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\03_eval_arctic_bird.py)
+  ⎿  Wrote 334 lines to
+     research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\03_eval_arctic_bird.py
+       1 #!/usr/bin/env python
+       2 """
+       3 Phase 2 — Step 3: Full BIRD dev single-stage eval of Arctic-Text2SQL-R1-7B.
+       4
+       5 Single-stage means: question + FULL schema (with BIRD descriptions) + evidence
+       6 -> SQL. No schema linker stage. This matches how Arctic-R1 was trained
+       7 (GRPO with execution reward starting from OmniSQL, which is a single-stage
+       8 SFT model).
+       9
+      10 Outputs:
+     … +324 lines (ctrl+o to expand)
+
+● Write(research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\Run_Phase2.ipynb)
+  ⎿  Wrote 202 lines to
+     research_hub\project1\text_to_sql\experiments\exp1\scripts\10_phase2_arctic\Run_Phase2.ipynb
+       1 {
+       2  "cells": [
+       3   {
+       4    "cell_type": "markdown",
+       5    "metadata": {},
+       6    "source": [
+       7     "# Phase 2 — Arctic-Text2SQL-R1-7B Validation\n",
+       8     "\n",
+       9     "This notebook runs the three Phase-2 scripts in order:\n",
+      10     "\n",
+     … +206 lines (ctrl+o to expand)
+
+● Now to update state.md and observations.md with the Phase 2 setup entries. Let me check what the latest entries
+  currently look like.
+
+  Read 2 files (ctrl+o to expand)
+
+● Update(research_hub\project1\text_to_sql\experiments\exp1\state.md)
+  ⎿  Added 89 lines
+      1852  - Even for a single-command instruction, show all three phases. Say "— none" for empty phases instead
+             of omitting.
+      1853
+      1854  ---
+      1855 +
+      1856 +## [2026-04-17 — Phase 2 scaffolded: Arctic-Text2SQL-R1-7B validation (no GPU run yet)]
+      1857 +
+      1858 +**Phase:** PLANNING → VALIDATION (Phase 2 scaffold written on Windows; Week-2 training unaffected)
+      1859 +**Status:** New folder `scripts/10_phase2_arctic/` created with 3 scripts + orchestrator notebook to
+           +test whether Snowflake's released Arctic-Text2SQL-R1-7B checkpoint reproduces ~68.9% BIRD dev on our
+           +eval harness. No existing files modified; Week-2 SFT training is free to continue.
+      1860 +
+      1861 +**Motivation:**
+      1862 +- State.md had already *cited* Arctic-Text2SQL-R1-7B as the 7B BIRD SOTA (68.9%, Snowflake, Apache 2.
+           +0, arXiv 2505.20315) but ruled out pursuing it because we conflated "use their method" (GRPO, needs 6
+           +4×H100) with "use their released weights" (one-shot inference, 24GB Turing is enough).
+      1863 +- Web-research sub-agent confirmed 2026-04-17 that Snowflake publishes the weights on HuggingFace at
+           +`Snowflake/Arctic-Text2SQL-R1-7B`. Qwen2.5-Coder-7B base → drops onto our fp16 + SDPA stack.
+      1864 +- Other finds from the same research: **Qwen3.6-35B-A3B** (released 2026-04-16, 35B MoE, BF16-native,
+           + unusable on 24GB Turing for LoRA) and **TriAttention** (arXiv 2604.04921, MIT+NVIDIA — KV-cache comp
+           +ression for long-context INFERENCE only, does not help LoRA training). Both ruled out for this sprint
+           +.
+      1865 +
+      1866 +**Decision gate for Phase 2 (baked into `README.md`):**
+      1867 +
+      1868 +| BIRD dev EX | Verdict | Action |
+      1869 +|---|---|---|
+      1870 +| ≥ 65% | Arctic-R1 reproduces on our harness | Pivot: stack VL/SC/exec/DPO on top → target 72%+ |
+      1871 +| 55-65% | Partial reproduce | Investigate prompt format / schema packing / eval parity |
+      1872 +| < 55% | No reproduce | Stay on Week-2 CoT+DPO plan (already scripted and running) |
+      1873 +
+      1874 +**Files created in `scripts/10_phase2_arctic/` (self-contained, Phase-2 isolation enforced):**
+      1875 +
+      1876 +- `README.md` — phase rationale + decision gate + VRAM notes + R1-output parsing note
+      1877 +- `01_download_arctic.py` — snapshot_download from HF → HF_HUB_CACHE (CPU, 20-40 min)
+      1878 +- `02_smoke_test_arctic.py` — loads fp16 on Turing + generates SQL for 5 BIRD rows at batch=1, max_ne
+           +w_tokens=1024. Verifies no OOM, prints VRAM peak, parses output via `parse_sql_generator_output`.
+      1879 +- `03_eval_arctic_bird.py` — full BIRD dev single-stage eval (question + FULL schema with description
+           +s + evidence → SQL). Writes `results/bird/arctic_r1/predictions_dev.csv` via `config.predictions_path
+           +`. Defaults `--no-log` in the notebook so Week-2's run_log.xlsx stays untouched; falls back to a loca
+           +l `phase2_runs.jsonl` inside the same folder.
+      1880 +- `Run_Phase2.ipynb` — orchestrator: env check → download → smoke → smoke eval → full eval (in tmux)
+           +→ result inspection cell.
+      1881 +
+      1882 +**Critical design choices (why the scripts look the way they do):**
+      1883 +
+      1884 +1. **Single-stage prompt** — Arctic-R1 was trained via GRPO starting from OmniSQL, which is a single-
+           +stage SFT model. We feed it the full schema + evidence + question, not the decomposed SL-filtered sch
+           +ema. Using it as `--gen-dir` in the existing decomposed eval would feed it out-of-distribution prompt
+           +s.
+      1885 +2. **fp16 + SDPA hard-coded** — same Turing-compatibility reasons as everywhere else in the repo. HF
+           +distributes the checkpoint in BF16 safetensors; `torch_dtype=torch.float16` in `from_pretrained` cast
+           +s on load.
+      1886 +3. **`max_new_tokens=1024`** (vs. 250 in our usual eval) — Arctic is R1-trained, likely emits reasoni
+           +ng before the SQL. The parser already extracts the last `` ```sql ... ``` `` block so CoT-style outpu
+           +t is handled.
+      1887 +4. **`--no-log` is default in the notebook** — Week-2 training has `run_log.xlsx` open. Every Phase-2
+           + run writes to `phase2_runs.jsonl` locally instead. Manual merge into `run_log.xlsx` after Week-2 fin
+           +ishes.
+      1888 +5. **No `src/` modifications** — user explicitly forbid touching anything Week-2 is importing. All Ph
+           +ase-2 scripts import from `src/` read-only.
+      1889 +6. **Runs in `tmux`** in the notebook's full-eval cell (named session `phase2`) so AnyDesk disconnect
+           +s don't kill the 60-90 min eval.
+      1890 +
+      1891 +**Expected runtime (if no OOM):**
+      1892 +- Download: 20-40 min CPU (network-bound)
+      1893 +- Smoke (5 rows): 3-5 min GPU
+      1894 +- Smoke eval (N=20): 1-2 min GPU
+      1895 +- Full eval (N=1534): 60-90 min GPU at batch=2, max_new_tokens=1024, greedy
+      1896 +
+      1897 +**Phase 1 — Files to copy Windows → Linux (new files only):**
+      1898 +```
+      1899 +exp1/scripts/10_phase2_arctic/README.md
+      1900 +exp1/scripts/10_phase2_arctic/01_download_arctic.py
+      1901 +exp1/scripts/10_phase2_arctic/02_smoke_test_arctic.py
+      1902 +exp1/scripts/10_phase2_arctic/03_eval_arctic_bird.py
+      1903 +exp1/scripts/10_phase2_arctic/Run_Phase2.ipynb
+      1904 +```
+      1905 +Nothing else is modified. No `src/` changes, no notebook edits, no changes to Week-2 folders.
+      1906 +
+      1907 +**Phase 2 — Scripts to execute on Linux (only after Week-2 training is done; the download step can ru
+           +n in parallel since it's CPU-only):**
+      1908 +```bash
+      1909 +cd ~/Ashraf_Ali_2025_Batch/T2S/exp1
+      1910 +t2s
+      1911 +
+      1912 +# Step 1 — safe to run while Week-2 is on the GPU (CPU + network only)
+      1913 +python scripts/10_phase2_arctic/01_download_arctic.py
+      1914 +
+      1915 +# Steps 2 and 3 require the GPU — wait for Week-2 to finish or release the card
+      1916 +python scripts/10_phase2_arctic/02_smoke_test_arctic.py
+      1917 +
+      1918 +# smoke eval first
+      1919 +python scripts/10_phase2_arctic/03_eval_arctic_bird.py --limit 20 --no-log
+      1920 +
+      1921 +# full eval in tmux (AnyDesk-safe)
+      1922 +tmux new-session -d -s phase2 'python scripts/10_phase2_arctic/03_eval_arctic_bird.py --no-log 2>&1 |
+           + tee scripts/10_phase2_arctic/eval_full.log'
+      1923 +tmux attach -t phase2   # to watch; Ctrl+B then D to detach
+      1924 +```
+      1925 +
+      1926 +Or, equivalently, open `scripts/10_phase2_arctic/Run_Phase2.ipynb` and run cells top-to-bottom.
+      1927 +
+      1928 +**Phase 3 — Files to copy Linux → Windows (after full eval completes):**
+      1929 +```
+      1930 +exp1/results/bird/arctic_r1/predictions_dev.csv            # per-row preds + raw outputs
+      1931 +exp1/results/bird/arctic_r1/phase2_runs.jsonl              # per-run metrics (EX, VRAM, time)
+      1932 +exp1/scripts/10_phase2_arctic/eval_full.log                # stdout of the tmux run
+      1933 +exp1/scripts/10_phase2_arctic/Run_Phase2.ipynb             # executed notebook with cell outputs
+      1934 +```
+      1935 +Skip the checkpoint dir under `$HF_HUB_CACHE/models--Snowflake--Arctic-Text2SQL-R1-7B/` — ~15 GB, reg
+           +enerable.
+      1936 +
+      1937 +**Blockers:**
+      1938 +- GPU is occupied by Week-2 training; Phase-2 steps 2 + 3 wait. Step 1 (download) can run in parallel
+           +.
+      1939 +- If Snowflake's HF model card lists a specific prompt format we haven't matched, EX will underperfor
+           +m. Smoke test's raw-output print is the first check for this.
+      1940 +
+      1941 +**Next step:** user runs `Run_Phase2.ipynb` (step 1 now; steps 2-3 when Week-2 releases the GPU), cop
+           +ies results back, and we compare to the decision gate.
+      1942 +
+      1943 +---
+
+● Update(research_hub\project1\text_to_sql\experiments\exp1\observations.md)
+  ⎿  Added 49 lines
+      2134
+      2135  ---
+      2136
+      2137 +### [2026-04-17] — Phase 2 scaffold: Arctic-Text2SQL-R1-7B validation (pre-execution)
+      2138 +
+      2139 +Before running Phase 2 on the GPU, documenting assumptions and what we expect to learn, so when resul
+           +ts come back there is something concrete to compare against.
+      2140 +
+      2141 +**Why Phase 2 exists:**
+      2142 +Our Week-1 stacked ceiling on BIRD dev was 44.20% (oracle 47.83%). State.md cited Arctic-Text2SQL-R1-
+           +7B (Snowflake, Apache 2.0, Qwen2.5-Coder-7B base, GRPO from OmniSQL) as 7B SOTA at 68.9% BIRD dev, bu
+           +t we treated it as a *method* we couldn't afford (64×H100 GRPO). A 2026-04-17 web-research pass confi
+           +rmed Snowflake published the weights on HuggingFace — the checkpoint is a one-shot inference drop. If
+           + it reproduces on our harness, it changes our base model and the entire paper framing.
+      2143 +
+      2144 +**Additional findings from the same web research (for future reference):**
+      2145 +
+      2146 +| Claim | Verdict | Why relevant / not |
+      2147 +|---|---|---|
+      2148 +| Qwen3.6-35B-A3B (MoE, 35B/3B-active, BF16-native) released 2026-04-16 | Real | **Unusable for LoRA
+           +on 24GB Turing** — BF16-native + MoE → 28-40 GB for training. Cannot fit. |
+      2149 +| TriAttention (MIT + NVIDIA, arXiv 2604.04921, Apr 2026) = "32B on 24GB" | Misframed | KV-cache comp
+           +ression for long-context *inference only*. Does not help LoRA fine-tuning; does not shrink weights. I
+           +rrelevant for our 2K-token T2S prompts. |
+      2150 +| OmniSQL SynSQL-2.5M dataset is public (Apache 2.0) | Real | **Directly usable** for Week-2 CoT-SFT
+           +— removes the "run GPT-4o on BIRD-train" step in our existing `scripts/08_cot/prep_cot_data.py`. Note
+           +d for a follow-up. |
+      2151 +| DeepSeek-R1-Distill-Qwen-7B/14B (MIT) | Real | Alternative CoT teacher if we stay on Qwen2.5-Coder-
+           +7B base. Turing-compatible. |
+      2152 +
+      2153 +**What Phase 2 specifically will measure:**
+      2154 +- **EX (single-stage)** — Arctic-R1 greedy, full schema + evidence, no SL filtering
+      2155 +- **Per-difficulty breakdown** — simple / moderate / challenging
+      2156 +- **VRAM peak at batch=2, max_new_tokens=1024** — tells us headroom for later SC@N
+      2157 +- **Parse rate** — does `parse_sql_generator_output` cleanly extract SQL from R1-style reasoning-plus
+           +-SQL outputs?
+      2158 +
+      2159 +**Predictions before running (so we can judge whether the run was clean):**
+      2160 +
+      2161 +| Scenario | Predicted EX | Interpretation |
+      2162 +|---|---|---|
+      2163 +| Everything works, our harness matches Snowflake's | 65-70% | Close to reported 68.9% → pivot |
+      2164 +| Our harness is ~5pp stricter (order-insensitive set match differs, or column-aliasing issue) | 62-6
+           +8% | Still a pivot candidate |
+      2165 +| Prompt format mismatch (we wrap Qwen chat; they may expect raw text) | 40-55% | Investigate then re
+           +try with alternate prompts |
+      2166 +| Model has baked-in value linking or calls external tools | 20-40% | Would explain why we can't repr
+           +oduce without their full stack |
+      2167 +
+      2168 +**What we're NOT doing in Phase 2:**
+      2169 +- Training Arctic-R1 further (would need their GRPO infra, out of scope)
+      2170 +- Stacking SC@8 / VL / exec-feedback on top (that's the pivot plan *if* validation passes)
+      2171 +- Modifying `src/` or any Week-2 files (user explicitly forbid this)
+      2172 +- Using the decomposed SL → Gen pipeline with Arctic-R1 as Gen (OOD for the checkpoint)
+      2173 +
+      2174 +**Coexistence with Week-2 training:**
+      2175 +- Phase-2 download runs on CPU+network → safe to run in parallel with Week-2 GPU training.
+      2176 +- Phase-2 smoke + full eval need the GPU → wait for Week-2 to finish or schedule between training run
+           +s.
+      2177 +- `Run_Phase2.ipynb` defaults to `--no-log` on the eval script, so Week-2's open `run_log.xlsx` is no
+           +t touched. Phase-2 results land in `results/bird/arctic_r1/phase2_runs.jsonl` (local JSONL). After We
+           +ek-2 is done, the JSONL can be merged into the shared Excel by hand.
+      2178 +
+      2179 +**Decision rule after Phase 2 full eval:**
+      2180 +- ≥65% → **pivot**. Open a new entry "Phase 3 — stack VL/SC/exec on Arctic-R1 base". Target 72%+. Wee
+           +k-2 CoT+DPO becomes an *ablation* column rather than our headline pipeline.
+      2181 +- 55-65% → investigate prompt format + cell-value handling before committing further. Snowflake's mod
+           +el card may document specifics we haven't mirrored.
+      2182 +- <55% → stay on Week-2 CoT+DPO. Document Arctic-R1 as "non-reproducing on our harness" honestly in t
+           +he paper.
+      2183 +
+      2184 +---
+      2185 +
+      2186  ## Running Notes
+      2187  <!-- Freeform notes that don't fit above. Timestamp everything. -->
+
+● Phase 2 scaffolding is done. Nothing in src/ or Week 2 folders was touched.
+
+  Files created (all inside scripts/10_phase2_arctic/):
+  - README.md — rationale, decision gate, VRAM notes
+  - 01_download_arctic.py — HF snapshot download (CPU, ~20–40 min)
+  - 02_smoke_test_arctic.py — 5 rows, verifies fp16+SDPA loads + no OOM
+  - 03_eval_arctic_bird.py — full BIRD dev single-stage eval, writes results/bird/arctic_r1/predictions_dev.csv
+  - Run_Phase2.ipynb — orchestrator, cells in order
+
+  Also appended entries to exp1/state.md and exp1/observations.md documenting the phase rationale + decision gate.
+
+  ---
+  Phase 1 — Files to copy Windows → Linux
+
+  exp1/scripts/10_phase2_arctic/README.md
+  exp1/scripts/10_phase2_arctic/01_download_arctic.py
+  exp1/scripts/10_phase2_arctic/02_smoke_test_arctic.py
+  exp1/scripts/10_phase2_arctic/03_eval_arctic_bird.py
+  exp1/scripts/10_phase2_arctic/Run_Phase2.ipynb
+
+  Nothing else. No src/ changes, no notebook edits, no changes to Week 2 folders.
+
+  Phase 2 — Scripts to execute on Linux
+
+  Open the notebook scripts/10_phase2_arctic/Run_Phase2.ipynb and run cells top-to-bottom. Or do it manually:
+
+  cd ~/Ashraf_Ali_2025_Batch/T2S/exp1
+  t2s
+
+  # Safe to run NOW, in parallel with Week-2 training (CPU + network only)
+  python scripts/10_phase2_arctic/01_download_arctic.py
+
+  # --- Wait for Week-2 to finish and release the GPU before the next two ---
+
+  python scripts/10_phase2_arctic/02_smoke_test_arctic.py
+  python scripts/10_phase2_arctic/03_eval_arctic_bird.py --limit 20 --no-log   # smoke eval
+
+  # Full eval in tmux (AnyDesk-safe, 60-90 min)
+  tmux new-session -d -s phase2 'python scripts/10_phase2_arctic/03_eval_arctic_bird.py --no-log 2>&1 | tee
+  scripts/10_phase2_arctic/eval_full.log'
+  tmux attach -t phase2     # watch; Ctrl+B then D to detach
+
+  Things to keep in mind while running
+
+  1. GPU scheduling — Step 1 is CPU-only and safe during Week-2 training. Steps 2 and 3 need the GPU, so wait for Week-2
+   to finish or release it.
+  2. --no-log is default in the notebook — Week-2 has run_log.xlsx locked. Phase-2 writes to
+  results/bird/arctic_r1/phase2_runs.jsonl locally instead. Merge into the shared Excel later by hand.
+  3. VRAM sanity check in step 2 — the smoke print shows peak VRAM. If it's >21 GB, drop step 3 to --batch-size 1
+  --max-new-tokens 768.
+  4. R1 reasoning outputs — Arctic is RL-trained from OmniSQL; it may emit reasoning before SQL. max_new_tokens=1024 by
+  default. The parser already handles ```sql``` blocks inside longer outputs.
+  5. Prompt format risk — Snowflake didn't publish an official template. The smoke test first prints raw outputs from 3
+  examples — verify they contain a proper ```sql ... ``` block before committing to the full eval. If not, adjust
+  SINGLE_STAGE_USER_TEMPLATE in 02_ and 03_ (they're intentionally duplicated so each script is self-contained).
+  6. Long eval must be in tmux — AnyDesk drops kill non-tmux'd runs.
+
+  Phase 3 — Files to copy Linux → Windows after completion
+
+  exp1/results/bird/arctic_r1/predictions_dev.csv       # per-row preds + raw outputs
+  exp1/results/bird/arctic_r1/phase2_runs.jsonl         # per-run EX / VRAM / time
+  exp1/scripts/10_phase2_arctic/eval_full.log           # tmux stdout
+  exp1/scripts/10_phase2_arctic/Run_Phase2.ipynb        # executed notebook
+
+  Skip the model checkpoint at $HF_HUB_CACHE/models--Snowflake--Arctic-Text2SQL-R1-7B/ — ~15 GB, regenerable on demand.
+
+  Decision gate (reminder)
+
+  ┌─────────────┬────────────────────────────────────────────────────────┐
+  │ BIRD dev EX │                         Action                         │
+  ├─────────────┼────────────────────────────────────────────────────────┤
+  │ ≥65%        │ Pivot — stack VL/SC/exec/DPO on Arctic-R1; target 72%+ │
+  ├─────────────┼────────────────────────────────────────────────────────┤
+  │ 55–65%      │ Investigate prompt format / harness parity             │
+  ├─────────────┼────────────────────────────────────────────────────────┤
+  │ <55%        │ Stay on Week-2 CoT+DPO plan                            │
+  └─────────────┴────────────────────────────────────────────────────────┘
+
+  Want me to also draft the Phase 3 scripts (stack value-linking / SC@8 / exec-feedback on Arctic-R1) now as a
+  ready-to-go branch, or wait for Phase 2 validation results first?
+
+✻ Churned for 7m 29s
+
+※ recap: Goal: validate whether Snowflake's Arctic-Text2SQL-R1-7B reproduces ~68.9% BIRD dev on our 24GB Turing harness,
+   to decide a pivot vs staying on Week-2 CoT+DPO. Next action: copy the 5 new `scripts/10_phase2_arctic/` files to
+  Linux and run step 1 (the CPU-only download) now. (disable recaps in /config)
+
+
+python scripts/10_phase2_arctic/04_eval_arctic_correct_prompt.py --no-log 2>&1 | tee scripts/10_phase2_arctic/eval_arctic_v2_full.log
+
+
+
+ After the smoke (immediately):
+  exp1/results/bird/arctic_r1_v2/predictions_dev.csv         (smoke, 20 rows)
+  exp1/results/bird/arctic_r1_v2/phase2_runs.jsonl
+
+  After the full run (after ~12 hr):
+  exp1/results/bird/arctic_r1_v2/predictions_dev.csv         (full, 1534 rows — overwrites smoke)
+  exp1/results/bird/arctic_r1_v2/phase2_runs.jsonl           (now has both rows)
+  exp1/scripts/10_phase2_arctic/eval_arctic_v2_full.log
+
+  ---
+  Decision after Phase 2 step 1 (smoke)
+
+  ┌──────────────┬────────────────────────────────────────────────────────────────────────────────────────┐
+  │ v2 smoke EX  │                                         Action                                         │
+  │    (N=20)    │                                                                                        │
+  ├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ≥ 60%        │ Strong signal. Run full immediately.                                                   │
+  ├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 50–55%       │ Borderline. Run full but expect modest lift.                                           │
+  ├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 45–50%       │ Prompt-format alone isn't the lever. Skip full; either add value linking + SC (4-week  │
+  │              │ effort) or pivot to CoT-SFT on our stack (Path A continuation).                        │
+  ├──────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ < 45%        │ Something's wrong with prompt assembly — paste me the printed sample schema block and  │
+  │              │ we debug before the full run.                                                          │
+  └──────────────┴────────────────────────────────────────────────────────────────────────────────────────┘
+
+  Send back the smoke numbers (just the === RESULTS === block) and I'll call it.

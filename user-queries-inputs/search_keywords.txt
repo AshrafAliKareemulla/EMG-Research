@@ -1,0 +1,66 @@
+(("Document Title":"*emg*") OR ("Document Title":"*electromyography*") OR ("Abstract":"*emg*") OR ("Abstract":"*electromyography*")) AND ("Publication Title":"Medicine and Biology Society (EMBC)")
+
+
+emg
+EMG
+semg
+SEMG
+sEMG
+Electromyography
+Electromyographic
+electromyography
+electromyographic
+Surface Electromyography
+surface electromyography
+surface electromyographic
+
+
+https://ieeexplore.ieee.org/search/searchresult.jsp?action=search&newsearch=true&matchBoolean=true&queryText=(%22Document%20Title%22:sEMG)%20AND%20(%22Publication%20Title%22:ICASSP)&ranges=2022_2026_Year
+
+
+
+
+
+
+ cat /proc/driver/nvidia/version
+
+NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  560.35.03  Release Build  (dvs-builder@U16-I1-N07-12-3)  Fri Aug 16 21:42:42 UTC 2024
+
+GCC version:  gcc version 12.3.0 (Ubuntu 12.3.0-1ubuntu1~22.04.3) 
+
+
+
+apt list --installed 2>/dev/null | grep -i nvidia-driver
+
+nvidia-driver-535/jammy-updates,jammy-security,now 535.288.01-0ubuntu0.22.04.1 amd64 [installed]
+
+(base) honors@honors:~$ 
+
+
+
+ ls /usr/lib/x86_64-linux-gnu/libnvidia-ml.so*
+
+ls /usr/lib/x86_64-linux-gnu/libcuda.so*
+
+/usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+
+/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
+
+/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.535.288.01
+
+/usr/lib/x86_64-linux-gnu/libcuda.so
+
+/usr/lib/x86_64-linux-gnu/libcuda.so.1
+
+/usr/lib/x86_64-linux-gnu/libcuda.so.535.288.01
+
+(base) honors@honors:~$ 
+
+
+
+
+
+
+
+
+

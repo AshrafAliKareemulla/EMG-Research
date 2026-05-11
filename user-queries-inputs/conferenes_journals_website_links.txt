@@ -1,0 +1,84 @@
+IEEE Transactions on Neural Systems and Rehabilitation Engineering
+https://ieeexplore.ieee.org/xpl/issues?punumber=7333&isnumber=11311371
+
+IEEE Transactions on Biomedical Engineering
+https://ieeexplore.ieee.org/xpl/issues?punumber=10&isnumber=11455515
+
+IEEE Sensors Journal
+https://ieeexplore.ieee.org/xpl/issues?punumber=7361&isnumber=11466311
+
+IEEE International Conference on Acoustics, Speech and Signal Processing
+https://ieeexplore.ieee.org/xpl/conhome/1000002/all-proceedings
+
+IEEE Journal of Biomedical and Health Informatics
+https://ieeexplore.ieee.org/xpl/issues?punumber=6221020&isnumber=11475574
+
+IEEE Workshop on Machine Learning for Signal Processing
+https://ieeexplore.ieee.org/xpl/conhome/1001025/all-proceedings
+
+Annual International Conference of the IEEE Engineering in Medicine and Biology Society (EMBC)
+https://ieeexplore.ieee.org/xpl/conhome/1000269/all-proceedings
+
+International Joint Conference on Neural Networks (IJCNN)
+https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings
+
+IEEE Access Journal
+https://ieeexplore.ieee.org/xpl/issues?punumber=6287639&isnumber=11323511
+
+IEEE Transactions on Industrial Electronics
+https://ieeexplore.ieee.org/xpl/issues?punumber=41&isnumber=11474704
+
+IEEE Transactions on Human-Machine Systems
+https://ieeexplore.ieee.org/xpl/issues?punumber=6221037&isnumber=11475676
+
+IEEE Transactions on Instrumentation and Measurement
+https://ieeexplore.ieee.org/xpl/issues?punumber=19&isnumber=11329398
+
+IEEE Transactions on Cybernetics
+https://ieeexplore.ieee.org/xpl/issues?punumber=6221036&isnumber=11442719
+
+IEEE Transactions on Signal Processing (only 5 papers available and no papers related to emg after 2020)
+https://ieeexplore.ieee.org/xpl/issues?punumber=78&isnumber=11345506
+
+IEEE Transactions on Emerging Topics in Computational Intelligence (No papers on emg)
+https://ieeexplore.ieee.org/xpl/issues?punumber=7433297&isnumber=11456635
+
+IEEE Signal Processing Letters (only 3 papers which had word "emg" and that too before 2020)
+https://ieeexplore.ieee.org/xpl/issues?punumber=97&isnumber=11304147
+
+IEEE International Conference on Robotics and Automation (ICRA)
+https://ieeexplore.ieee.org/xpl/conhome/1000639/all-proceedings
+
+IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)
+https://ieeexplore.ieee.org/xpl/conhome/1000393/all-proceedings
+
+IEEE International Conference on Rehabilitation Robotics (ICORR)
+https://ieeexplore.ieee.org/xpl/conhome/1001500/all-proceedings
+
+IEEE Biomedical Circuits and Systems Conference (BioCAS)
+https://ieeexplore.ieee.org/xpl/conhome/1001670/all-proceedings
+
+IEEE International Conference on Systems, Man, and Cybernetics (SMC)
+https://ieeexplore.ieee.org/xpl/conhome/1000738/all-proceedings
+
+IEEE International Symposium on Medical Measurements and Applications (MeMeA)
+https://ieeexplore.ieee.org/xpl/conhome/1001296/all-proceedings
+
+IEEE Global Conference on Signal and Information Processing (GlobalSIP) (No conference after 2019)
+https://ieeexplore.ieee.org/xpl/conhome/1803434/all-proceedings
+
+
+
+
+Biomedical Signal Processing and Control
+https://www.sciencedirect.com/journal/biomedical-signal-processing-and-control/issues
+
+Pattern Recognition
+https://www.sciencedirect.com/journal/pattern-recognition
+
+Biomedical Signal Processing and Control
+https://www.sciencedirect.com/journal/biomedical-signal-processing-and-control/issues
+
+
+Last Choice: Journal of NeuroEngineering and Rehabilitation
+https://link.springer.com/journal/12984/volumes-and-issues

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(/c/Python311/python.exe -c ':*)",
+      "Bash(/c/Python311/python.exe)",
+      "Bash(/c/Python311/python.exe _build_filtered_excel.py)",
+      "Bash(rm:*)",
+      "Bash(/c/Python311/python.exe _build_filtered.py)",
+      "Bash(python:*)",
+      "Bash(pip install *)",
+      "Bash(where tesseract *)",
+      "Bash(tesseract --version)",
+      "Bash(awk '/^### 3\\\\./ {print FILENAME, $0}' \"E:/sEMG Research Enhanced/literature-review-papers/conferences-and-journals-complete-list/1_IEEE_NSRE/extracted_markdowns/ieee_11316226__liu_2026_hd-semg-3d-cnn.md\")",
+      "WebFetch(domain:ninapro.hevs.ch)",
+      "PowerShell(Join-Path *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Test-Path *)",
+      "Bash(powershell *)"
+    ]
+  }
+}

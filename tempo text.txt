@@ -1,0 +1,1063 @@
+i want to focus and work on segmenting the ninapro db2 dataset, you can find that dataset in the path @D:\Complete
+  EMG Dataset\ninaprodb2\downloaded_data\ with so many subjects, focus only on one subject for now, this is the
+  official dataset download page with the dataset information for ninapro db2:
+  https://ninapro.hevs.ch/instructions/DB2.html here, when i open a matlab file of the data, i get some variables like
+  [Image #1] see the image for the variables and variable sizes, i have also attached the official research paper pdf's
+   of ninapro at @literature-review-papers/dataset-papers\Ninapro P1. pdf and Ninapro P2.pdf in the same folder, first
+  go through each and every line of the pdf thoroughly, understand what each and every parameter is collected during
+  the ninapro dataset collection, understand the matlab image and the variables in one of the matlab files of one
+  subject and give me full picture clarity on how this works and how to order the data, my whole intention is to order
+  data in such a way that it can be seemlessly integrated with either machine learning algorithms or deep learning
+  algorithms like combining multiple datasets for training and since i have only one 24gb vram gpu, i cant load even a
+  single ninapro dataset completely onto my gpu to create batches for deep learning models, so we need to kind of
+  indexed based apporach for this, if there are multiple datasets, we randomly collect few few smaples from each and
+  make a batch and make sure these samples are not repeated in the future batches and in that way we can create and
+  keep all the batches onto our system ram and then we can load batches few at a time while training and finetuning,
+  this is my idea, so i was thinking of first prepping each dataset individually into some .h5 file storages so that we
+   can load them directly once create and we use these h5 files from different datasets to create batches, so i was
+  thinking like each h5 file would be (number of total signals, number of channels, segment length), here again for
+  each dataset, we have segmentation based on frequency and overlapping like 250ms with 50% overlapping, etc etc
+  hyperparameters we can experiment later, and one more thing is that we cannot also create one single .h5/.hdf5 file
+  for some datasets like ninapro db2 itself because 40 patients is huge data, so we create shorter versions maybe 5-6
+  files and this can happen with any emg dataset in the future (remember here we first order each dataset and we have
+  to seemleslly integrate those multiple dataset (and each dataset might have multiple h5 files) handlings,
+  overlapping, segment sizes, number of channels, etc etc), so this is how i am trying to setup my thing and i want you
+   to identify any design flaws in my approach and i want you to completly go through the matlab image i gave you and
+  ninapro research papers understand what parameter stands for and how to segment the data and finally how to verify it
+   if we are correctly associating the data chunks with the class values, etc), think ultra hard, take your time,
+  reason, reiterate, think multiple times before comitting anything, and let me know if you have any questions, just
+  let me know
+  ⎿  [Image #1]
+
+● I'll start by reading the project context files (CLAUDE.md mandates this), then dive deep into the Ninapro PDFs and
+  the actual data structure. Let me parallelize the initial reads.
+
+  Searched for 1 pattern, read 2 files, listed 4 directories (ctrl+o to expand)
+
+● Good — each subject has 3 .mat files (E1, E2, E3) corresponding to 3 exercise blocks. Now let me read both Ninapro
+  papers thoroughly. They're ~1MB each, so likely many pages — I'll read in chunks.
+
+  Read 1 file (ctrl+o to expand)
+
+● Excellent — I now have crystal clarity on the variables. Let me read the rest of P1 and then dig into P2 (which is
+  specifically about DB2).
+
+  Read 1 file (ctrl+o to expand)
+
+● P1 complete. Now reading P2 (specifically about DB2/DB3 and characterization).
+
+  Read 1 file (ctrl+o to expand)
+
+● I've now read both Ninapro papers in full and cross-referenced them with the MATLAB workspace screenshot. Here is the
+  complete picture, followed by the design flaws I see in your pipeline plan and the open questions I need answered
+  before we commit to anything.
+
+  ---
+  1. What's actually in S1_E1_A1.mat — variable by variable
+
+  The N = 1,808,331 rows you see is exactly what's expected: all 12 sensor streams have been super-sampled to the sEMG
+  rate of 2 kHz by the Ninapro team, so every variable shares the same time axis. 1808331 / 2000 Hz = ~904 s ≈ 15 min,
+  which matches "17 movements × 6 reps × (~5 s movement + ~3 s rest) + warmup/inter-block rest".
+
+  ┌──────────────┬───────────┬────────┬────────────────────────────────────────────┬───────────────────────────────┐
+  │   Variable   │   Shape   │ dtype  │                 What it is                 │ Sample rate (native → stored) │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ subject      │ scalar    │ int    │ Subject ID (1)                             │ —                             │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ exercise     │ scalar    │ int    │ Which exercise file (1, 2, or 3)           │ —                             │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ emg          │ 1808331 × │ single │ sEMG                                       │ 2 kHz native                  │
+  │              │  12       │        │                                            │                               │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ acc          │ 1808331 × │ single │ 12 electrodes × 3 axes (x,y,z)             │ 148 Hz → upsampled to 2 kHz   │
+  │              │  36       │        │ accelerometry, interleaved                 │ (linear interp)               │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ glove        │ 1808331 × │ single │ Raw CyberGlove II joint-angle proxies      │ ~25 Hz → 2 kHz                │
+  │              │  22       │        │ (uncalibrated)                             │                               │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ inclin       │ 1808331 × │ single │ Wrist roll, pitch                          │ 100 Hz → 2 kHz                │
+  │              │  2        │        │                                            │                               │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ stimulus     │ 1808331 × │ int8   │ Original movement label from the video     │ discrete → nearest-neighbor   │
+  │              │  1        │        │ stimulus shown to the subject              │ upsample                      │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ restimulus   │ 1808331 × │ int8   │ GLR-realigned movement label — corrects    │ discrete → nearest-neighbor   │
+  │              │  1        │        │ for human reaction-time delay              │                               │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ repetition   │ 1808331 × │ int8   │ Repetition index (1-6) aligned with        │ discrete                      │
+  │              │  1        │        │ stimulus                                   │                               │
+  ├──────────────┼───────────┼────────┼────────────────────────────────────────────┼───────────────────────────────┤
+  │ rerepetition │ 1808331 × │ int8   │ Repetition index (1-6) aligned with        │ discrete                      │
+  │              │  1        │        │ restimulus                                 │                               │
+  └──────────────┴───────────┴────────┴────────────────────────────────────────────┴───────────────────────────────┘
+
+  EMG channel semantics (this matters when combining datasets)
+
+  - cols 1-8: eight electrodes equally spaced around the forearm at the radio-humeral joint (dense sampling)
+  - col 9: Flexor Digitorum Superficialis main activity spot (palpated)
+  - col 10: Extensor Digitorum Superficialis main activity spot
+  - col 11: Biceps Brachii
+  - col 12: Triceps Brachii
+
+  So channels 1-8 are spatial/topological; channels 9-12 are anatomical. Other Ninapro DBs and EMAHA/BioPatRec do not
+  share this layout — keep this in mind for cross-dataset training.
+
+  stimulus vs restimulus — pick one deliberately
+
+  - stimulus = the label the video told the subject to do. Off by a human reaction-time amount (often 100-300 ms).
+  - restimulus = same label after offline GLR (Generalized Likelihood Ratio) realignment that maximizes likelihood of a
+  rest-movement-rest sequence. This is the label used by virtually all DB2 benchmarks (P2 paper, EMGHandNet, etc.).
+
+  Recommendation: use restimulus / rerepetition and clearly document. Both papers use restimulus.
+
+  Per-file label space ⚠️ subtle trap
+
+  The label values restart at 1 in each E-file:
+  - S1_E1_A1.mat → restimulus ∈ {0, 1..17} (rest + 17 hand/wrist movements)
+  - S1_E2_A1.mat → restimulus ∈ {0, 1..23} (rest + 23 grasps/functional)
+  - S1_E3_A1.mat → restimulus ∈ {0, 1..9} (rest + 9 force patterns — not classification, regression target)
+
+  To get the canonical "DB2 49-class" or "DB2 40-movement-class" label space, you must offset E2 labels by +17. E3
+  should usually be excluded from the classification task (it's force regression). So a unified label vector is:
+  y_unified = restimulus_E1                        # values 0, 1..17
+  y_unified = restimulus_E2 + 17 * (restimulus_E2 > 0)   # values 0, 18..40
+  (Keep 0 → 0 for rest — don't shift the rest class.)
+
+  Standard benchmark protocol (both papers agree)
+
+  - Window length: 400 ms (= 800 samples @ 2 kHz). P1 used 200 ms, but P2/DB2 settled on 400 ms.
+  - Window stride: 10 ms (= 20 samples). Heavy overlap (97.5%).
+  - Train/test split: repetitions 1, 3, 4, 6 = train; 2, 5 = test. This is by-repetition within a subject.
+
+  ---
+  2. How to segment, and how to verify labels are correct
+
+  Two policies for windowing:
+
+  (a) "Pure-class" windows (recommended for DB2 benchmarks):
+  A window is kept only if restimulus[start : start+L] is constant. This drops the brief transition windows that span
+  rest→movement. Almost all Ninapro papers do this implicitly by using restimulus-segmented epochs.
+
+  (b) "Majority label":
+  Take the mode of restimulus[start : start+L] as the window label. Looser, more samples, but mixes transitions.
+
+  Verification recipe (do this once for subject 1, before you trust any pipeline)
+
+  1. Sample-rate check: len(emg) / 2000 should be ~904 s for S1_E1_A1.
+  2. Movement-block count: np.sum(np.diff(restimulus.flatten()) != 0) ≈ 2 × (movements × reps) = 2 × (17 × 6) = 204
+  transitions for E1. If you also see boundary edges, expect 204 or 205.
+  3. Per-class duration: For each k ∈ 1..17, count (restimulus == k).sum() / 2000. Should be ~5 s per repetition × 6
+  reps ≈ 30 s ± noise.
+  4. Rest duration: (restimulus == 0).sum() / 2000 should be roughly 17 × 6 × 3 ≈ 306 s, plus block boundaries.
+  5. Visual sanity: pick one repetition of one movement, plot the 12-channel EMG with restimulus overlaid. EMG bursts
+  must align with restimulus != 0 regions. If you see EMG burst starting before restimulus flips to non-zero by ~150-300
+   ms, you're plotting stimulus, not restimulus — that's the reaction-time gap GLR was designed to remove.
+  6. rep × class 2D table: build a (num_classes, 6) matrix counting samples per (class, rep) — should be roughly
+  uniform.
+
+  If all six pass, the label↔signal association is correct.
+
+  ---
+  3. Design flaws / things to fix in your HDF5 batching plan
+
+  Your shape (num_signals, num_channels, segment_length) is on the right track but has gaps. Going through each concern
+  carefully:
+
+  (a) Schema is missing labels and metadata — biggest issue
+
+  You can't shape it as (N, C, L) alone. At minimum you need parallel arrays:
+  - X: (N, C, L) signals
+  - y: (N,) class label (canonical/unified id)
+  - subject_id: (N,) — required for LOSO, which is in your USER-REQUIREMENTS
+  - repetition_id: (N,) — required to reproduce the official train/test split
+  - exercise_id: (N,) — required to filter E1/E2 separately
+  - dataset_id: (N,) — when you start mixing datasets
+  - window_start: (N,) original sample offset, for traceability/debugging
+
+  Without these, the prepped data is a one-shot dead-end — you can't redo splits or run LOSO.
+
+  (b) Storing overlapping windows materialized = huge disk waste
+
+  At 400 ms / 10 ms stride, you store every sample ~40× over. DB2 raw EMG-only is ~10 GB; materialized at 97.5% overlap
+  → ~400 GB. With glove + acc it's multiples worse.
+
+  Better pattern (used by MNE, torchaudio, every serious bio-signal pipeline):
+  - Store the raw continuous signals once per subject (compressed HDF5 with gzip or lzf).
+  - Store an index manifest (a small Parquet/CSV of ~1-10 MB) listing all valid window starts: (dataset_id, subject_id,
+  exercise_id, repetition_id, file_path, start_sample, label).
+  - The PyTorch Dataset.__getitem__(i) reads manifest[i], opens the HDF5, slices [start : start+L] on demand. HDF5
+  chunked reads are fast (~µs).
+  - You can change window length / stride / overlap by regenerating the manifest in seconds — no re-prep.
+
+  This is exactly what an "indexed approach" should be — your instinct is right, but materializing windows defeats it.
+
+  (c) "Keep all batches in system RAM" doesn't scale
+
+  Even pre-extracted features for all of Ninapro DB2 + DB1 + DB5 + EMAHA at 400ms/10ms is hundreds of GB. With the
+  manifest pattern above, RAM holds only the manifest (≪100 MB) and the workers stream from disk. PyTorch
+  DataLoader(num_workers=8) will saturate any modern SSD.
+
+  (d) Cross-dataset shape mismatch
+
+  You won't get a single (N, C, L) schema across datasets unless you decide ahead of time:
+  - C (channels): DB1=10, DB2=12, DB3=12, DB5=16, EMAHA varies, BioPatRec varies. Options: zero-pad to max C with a
+  channel-validity mask; or keep per-dataset and use dataset-aware sampling (clean, recommended for now).
+  - Fs (sampling rate): DB1=100 Hz, DB2/DB3=2 kHz, DB5=200 Hz, EMAHA varies. A "250 ms" window means 25 samples (DB1) vs
+   800 samples (DB2). Either resample all to a canonical Fs (e.g. 1 kHz — minor downsampling for DB2), or keep native Fs
+   and have per-dataset L. Resampling to a canonical Fs is the only clean way to mix them in one batch.
+  - Channel semantics: col 11 of DB2 is biceps; the same column in another DB is something else. Mixing without
+  channel-role tags will hurt training. For ADL-Net this matters a lot.
+
+  (e) "Split into 5-6 files per dataset" — split by what?
+
+  Split by subject, one HDF5 file per subject, full stop. This is the only split that respects LOSO and avoids
+  accidental cross-subject leakage when later regenerating manifests. 40 files for DB2, ~80 MB EMG-only each. Don't
+  artificially merge or split arbitrarily.
+
+  (f) Auxiliary modalities (acc, glove, inclin) decision
+
+  P2 shows sEMG+ACC gives ~5% accuracy gain over sEMG alone. Don't drop ACC at ingestion time — store it alongside EMG
+  in the same HDF5. You can choose to ignore it at the model level later. Glove and inclin can also be useful for some
+  experiments and are cheap to keep.
+
+  (g) Rest-class policy not specified
+
+  ~37% of DB2 is restimulus == 0 (rest). Three legitimate choices:
+  - include rest as class 0 (49-class problem; what P1/P2 actually report)
+  - exclude rest entirely (40-class problem; common in many DL papers)
+  - subsample rest to balance
+
+  You must pick and document this before generating the manifest. Mixing studies with different rest policies
+  invalidates comparisons.
+
+  (h) Window boundary policy
+
+  "Drop transition windows" vs "majority vote" — pick one. I'd recommend pure-class (drop transitions) for DB2; it's
+  what the GLR realignment is designed to make work cleanly.
+
+  (i) Per-channel normalization
+
+  Z-score per channel, computed on the training set only (per the standard protocol — P2 §III-A). Stats must be saved
+  alongside the manifest. Don't normalize on the full dataset before splitting — that's a leak.
+
+  ---
+  4. Storage reality check for one DB2 subject
+
+  Single subject, all 3 exercise files, all sensors, float32:
+  - EMG: ~3 × 1.8M × 12 × 4B ≈ 260 MB
+  - ACC: ~3 × 1.8M × 36 × 4B ≈ 780 MB
+  - Glove + inclin: ~520 MB
+  - Labels (int8): ~22 MB
+  - Total ≈ 1.6 GB raw float32 per subject
+
+  With gzip, drops to ~400-700 MB depending on entropy. Whole DB2 EMG-only fits in ~10 GB; full-sensor ~60 GB. None of
+  this requires splitting into 5-6 files — one HDF5 per subject is the right granularity. Your 24 GB VRAM concern is
+  about training-time batches, not storage layout — those concerns shouldn't drive the file split.
+
+  ---
+  5. Questions I need answered before writing any code
+
+  These are the fork-in-the-road decisions. Some you may have an opinion on already; others I'm flagging because the
+  literature is inconsistent.
+
+  1. Canonical sampling rate when you start mixing datasets — pick one (e.g., 1 kHz or 2 kHz), and we resample
+  everything to it at ingestion. Or do you want native Fs preserved per dataset and resolve at the model boundary?
+  2. Window length — fixed in milliseconds (e.g. 250 ms or 400 ms) across all datasets, or per-dataset different?
+  3. Use restimulus or stimulus? I strongly recommend restimulus (DB2 standard).
+  4. Rest class: include as class 0, drop entirely, or subsample to balance?
+  5. Window boundary policy: pure-class only (drop transition windows) or majority-vote labels?
+  6. Materialized segments vs raw + manifest: I recommend raw + manifest (much smaller, more flexible). Are you OK with
+  that change to your plan?
+  7. Auxiliary modalities (acc / glove / inclin): keep all in HDF5, or EMG only?
+  8. Channel handling for cross-dataset: zero-pad+mask to a common max C, or keep per-dataset and use a dataset-aware
+  sampler? Affects your "ADL-Net" goal directly.
+  9. Subject scope right now: confirm you want me to start with only subject 1, only S1_E1_A1.mat end-to-end, then
+  generalize? Or load all 3 exercises for subject 1?
+  10. Do you also want the manifest format to support feature-vector storage (for Track 1 classical-ML feature
+  pipelines) in addition to raw windows (Track 2 DL)?
+
+  Once you answer these — even rough takes are fine — I'll lay out the concrete HDF5 schema, the manifest schema, the
+  segmentation policy, and the verification script, and we can implement them on subject 1 first. I'll hold off on
+  touching STATE.md / SESSIONS.md until we have a concrete plan you've signed off on.
+
+✻ Cooked for 4m 1s
+
+❯ dont worry about any other datasets now, just go through all the details of ninapro db2 in depth and also visit the
+  ninapro db2 website link i gave u earlier and follow my initial instructions properly
+
+● Understood — DB2-only, deeper, and I'll fetch the official instructions page now. Let me grab the WebFetch tool.
+
+● Fetch(https://ninapro.hevs.ch/instructions/DB2.html)
+  ⎿  Received 18.2KB (200 OK)
+
+● The website confirmed the papers but introduced one inconsistency I'll flag. Now here is the DB2-only complete
+  picture, organized so you can directly turn it into a prep pipeline.
+
+  ---
+  A. DB2 acquisition — exact numbers
+
+  ┌────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────┐
+  │         Parameter          │                                       Value                                        │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Subjects                   │ 40 intact, ages 29.9 ± 3.9 yr, 28 M / 12 F, 34 right-handed / 6 left-handed        │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Recording arm              │ Right hand only (regardless of handedness)                                         │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ sEMG electrodes            │ 12 × Delsys Trigno Wireless (active, double-differential, raw signal output)       │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ sEMG sampling rate         │ 2 kHz native                                                                       │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ sEMG noise floor           │ < 750 nV RMS                                                                       │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Per-electrode              │ 3-axis, 148 Hz native (one ACC per electrode → 12 × 3 = 36 columns)                │
+  │ accelerometer              │                                                                                    │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ CyberGlove II              │ 22 sensors, ~25 Hz native, raw uncalibrated values (proportional to joint angles)  │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Inclinometer (Kübler IS40, │ 100 Hz native, roll & pitch of wrist                                               │
+  │  2-axis)                   │                                                                                    │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ FFLS (force)               │ 100 Hz native, only used in E3, 6 channels                                         │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Power-line filter applied  │ 50 Hz Hampel filter (and harmonics) on Delsys sEMG only                            │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Synchronization            │ All streams super-sampled to 2 kHz in the released files: linear interp for        │
+  │                            │ continuous, nearest-neighbor for discrete (labels)                                 │
+  └────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────┘
+
+  Electrode placement (DB2-specific)
+
+  - EMG ch 1–8: 8 electrodes equally spaced around the forearm at the radio-humeral joint (sagittal plane proximal to
+  the biceps), dense-sampling layout.
+  - EMG ch 9: Flexor Digitorum Superficialis main activity spot (palpated).
+  - EMG ch 10: Extensor Digitorum Superficialis main activity spot.
+  - EMG ch 11: Biceps brachii.
+  - EMG ch 12: Triceps brachii.
+  - Skin cleaned with isopropyl alcohol; electrodes secured with latex-free adhesive bandage.
+
+  The ACC channel ordering in acc (36 cols) is per-electrode interleaved: typically [acc1_x, acc1_y, acc1_z, acc2_x,
+  acc2_y, acc2_z, …, acc12_z]. (This ordering should be verified once on the actual data — see the verification recipe
+  below.)
+
+  ---
+  B. DB2 protocol — what's in each of the 3 .mat files
+
+  For every subject s you get 3 files, named S<s>_E<e>_A1.mat for e ∈ {1,2,3}. The "A1" suffix is a fixed
+  acquisition-session ID (only one acquisition per subject in DB2). Each file is ONE exercise block:
+
+  ┌────────────────┬──────────┬───────────┬─────────────────┬────────────────┬─────────────────┬───────────────────┐
+  │                │          │    #      │ Movement IDs in │ Movement IDs   │                 │                   │
+  │      File      │ Exercise │ movements │  restimulus (in │ in unified DB2 │  Ground truth   │     Duration      │
+  │                │          │           │    this file)   │    numbering   │                 │                   │
+  ├────────────────┼──────────┼───────────┼─────────────────┼────────────────┼─────────────────┼───────────────────┤
+  │ S<s>_E1_A1.mat │ Exercise │ 17        │ 1–17 (+ 0 =     │ 1–17           │ hand kinematics │ ~23 min           │
+  │                │  B       │           │ rest)           │                │  (CyberGlove)   │                   │
+  ├────────────────┼──────────┼───────────┼─────────────────┼────────────────┼─────────────────┼───────────────────┤
+  │                │ Exercise │           │ 1–23 (+ 0 =     │ 18–40 (after   │ hand kinematics │                   │
+  │ S<s>_E2_A1.mat │  C       │ 23        │ rest)           │ offsetting by  │  (CyberGlove)   │ ~31 min           │
+  │                │          │           │                 │ +17)           │                 │                   │
+  ├────────────────┼──────────┼───────────┼─────────────────┼────────────────┼─────────────────┼───────────────────┤
+  │                │ Exercise │           │ 1–9 (+ 0 =      │ 41–49 (after   │ force (FFLS) —  │ ~ shorter (force  │
+  │ S<s>_E3_A1.mat │  D       │ 9         │ rest)           │ offsetting by  │ regression task │ patterns + MVC    │
+  │                │          │           │                 │ +40)           │                 │ calibration)      │
+  └────────────────┴──────────┴───────────┴─────────────────┴────────────────┴─────────────────┴───────────────────┘
+
+  So DB2 globally has 49 movement classes + 1 rest class = 50 classes, but only E1+E2 (40 movement classes + rest = 41
+  classes) are used for the standard movement-classification benchmark in P2. E3 is force regression — exclude it from
+  your classification dataset.
+
+  Movement timing
+
+  - Each repetition: ~5 s of movement, alternated with ~3 s of rest.
+  - 6 repetitions per movement (NOT 10 — the website page says "10" in one paragraph but that's a typo carried over from
+   DB1; both PDFs, and the rerepetition field max value of 6, confirm 6).
+  - Movements are NOT randomized within a block — they go in fixed order to encourage repetitive, near-unconscious
+  motions.
+  - A short familiarization sequence precedes the recording (already excluded from the released file; the released
+  restimulus starts at the first official movement).
+
+  Standard train/test split (used by both papers)
+
+  - Train: repetitions 1, 3, 4, 6
+  - Test: repetitions 2, 5
+  - Window length: 400 ms (= 800 samples @ 2 kHz)
+  - Window stride / increment: 10 ms (= 20 samples @ 2 kHz) → 97.5 % overlap
+  - Feature normalization: zero mean / unit std per channel, statistics computed on training set only (P2 §III-A)
+
+  (P1 used 200 ms windows, but P2 — the DB2-specific paper — settled on 400 ms after preliminary experiments showed it
+  improves accuracy. Use 400 ms for DB2 unless you have a specific reason not to.)
+
+  ---
+  C. Inside S1_E1_A1.mat — every variable, with the math
+
+  Your screenshot shows N = 1,808,331 rows. Sanity check:
+  1808331 / 2000 Hz = 904.16 s = 15 min 4 s
+  17 movements × 6 reps × (5 s + 3 s) = 816 s
+  + ~88 s of inter-block / pre-roll rest = 904 s ✓
+
+  So the file is exactly what we expect.
+
+  ┌──────────────┬───────────┬──────────────┬──────────────────────────────────────────┬────────────────────────────┐
+  │   Variable   │   Shape   │    dtype     │                 Meaning                  │           Notes            │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ subject      │ 1         │ scalar int   │ Subject index (1–40)                     │ constant within file       │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ exercise     │ 1         │ scalar int   │ 1 / 2 / 3 (which E-file)                 │ constant within file       │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ emg          │ 1808331 × │ single       │ sEMG, raw, after Hampel 50 Hz notch      │ channels per §A above      │
+  │              │  12       │ (float32)    │                                          │                            │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ acc          │ 1808331 × │ single       │ Accelerometry, 12 electrodes × 3 axes,   │ per-electrode interleaved  │
+  │              │  36       │              │ upsampled from 148 Hz                    │                            │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ glove        │ 1808331 × │ single       │ CyberGlove II raw sensor values,         │ uncalibrated; proportional │
+  │              │  22       │              │ upsampled from ~25 Hz                    │  to joint angles           │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ inclin       │ 1808331 × │ single       │ Wrist roll, pitch, upsampled from 100 Hz │ only useful for kinematics │
+  │              │  2        │              │                                          │  studies                   │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ stimulus     │ 1808331 × │ int8         │ Original movement label (matches the     │ offset by reaction time    │
+  │              │  1        │              │ video stimulus the subject was shown)    │                            │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │              │ 1808331 × │              │                                          │ THIS is what               │
+  │ restimulus   │  1        │ int8         │ GLR-realigned movement label             │ classification benchmarks  │
+  │              │           │              │                                          │ use                        │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ repetition   │ 1808331 × │ int8         │ Repetition index 1–6, aligned with       │ 0 during rest              │
+  │              │  1        │              │ stimulus                                 │                            │
+  ├──────────────┼───────────┼──────────────┼──────────────────────────────────────────┼────────────────────────────┤
+  │ rerepetition │ 1808331 × │ int8         │ Repetition index 1–6, aligned with       │ 0 during rest; pair with   │
+  │              │  1        │              │ restimulus                               │ restimulus                 │
+  └──────────────┴───────────┴──────────────┴──────────────────────────────────────────┴────────────────────────────┘
+
+  force and forcecal — only present in E3 files
+
+  Your E1 screenshot does not show them. In S<s>_E3_A1.mat you'll additionally see:
+  - force (N × 6): 4 finger-flexion strain gauges + 2 thumb axes
+  - forcecal (2 × 6): rest baseline (row 1) and MVC max (row 2) per finger, used to normalize force to a [0, 1]
+  proportion of MVC. Apply as force_norm = (force - forcecal[0]) / (forcecal[1] - forcecal[0]).
+
+  Why every stream has the same N
+
+  The maintainers super-sampled every channel to 2 kHz (linear interp for continuous streams, nearest-neighbor for label
+   streams) so that (emg, acc, glove, inclin, stimulus, restimulus) are all aligned by row index = sample index at 2
+  kHz. Time in seconds for row i is i / 2000. You do not need to do any resampling yourself.
+
+  ---
+  D. Critical caveats — read before writing any code
+
+  1. Use restimulus + rerepetition, not stimulus + repetition. GLR realignment removes the 100–300 ms reaction-time gap.
+   Every DB2 benchmark in the literature uses restimulus. If you accidentally segment using stimulus, your "movement"
+  windows will start with rest data and your accuracy will look 5–10 % worse than published numbers.
+  2. Label namespace per file. restimulus values restart at 1 in each E-file. To merge E1 + E2 into a unified 40-class
+  label space:
+  # E1 file: y = restimulus                   (values: 0, 1..17)
+  # E2 file: y = where(restimulus == 0, 0, restimulus + 17)  (values: 0, 18..40)
+  2. Do NOT shift the 0 (rest) class.
+  3. Exclude E3 from movement-classification datasets. It's a force-regression task with completely different stimuli
+  and a different ground truth (FFLS). Treat it as a separate experiment if you want it at all.
+  4. Website discrepancy: "10 repetitions" is wrong. The actual DB2 files have 6. Trust the data:
+  np.unique(rerepetition) will show {0, 1, 2, 3, 4, 5, 6} exactly.
+  5. Glove is uncalibrated. The 22 CyberGlove columns are raw sensor counts, NOT joint angles. They are proportional to
+  angles for a given subject (after a per-subject linear scaling). For DL where you z-score per channel anyway, this is
+  fine. For interpretability or joint-angle plots, you'd need per-subject calibration which Ninapro deliberately did not
+   perform.
+  6. Movement amplitude depends on repetition (slightly). P1's MANOVA found a statistically significant
+  repetition-amplitude relationship in some subjects (esp. for kinematics — 35 % of DB2 subjects). Implication: when
+  splitting train/test by repetition (which is the standard), you don't have to worry, but be cautious if you ever try
+  cross-repetition-fold-CV — repetition is not perfectly i.i.d.
+  7. The 50 Hz notch is already applied to the released files (Hampel filter). Don't re-apply it. If you
+  bandpass-filter, start from somewhere above 20 Hz and below 500 Hz for sEMG — typical: 4th-order Butterworth bandpass
+  20–500 Hz, plus optional 50 Hz notch (already done, so optional).
+  8. The pre-roll second or two of the file is rest. restimulus[0] is 0. Don't assume the file starts with movement.
+
+  ---
+  E. Segmenting DB2 — concrete strategy
+
+  Two segmentation policies. Pick one and document.
+
+  Policy 1 — "pure-class" windows (recommended for DB2 benchmarks):
+  For window [i, i+L):
+  keep window iff  restimulus[i:i+L]  is constant
+  label = restimulus[i]   (which equals every value in the window)
+  This drops the brief transition windows that span rest→movement. With L = 800 and stride = 20 samples, you'll lose ~3
+  % of windows to transitions; the rest are clean.
+
+  Policy 2 — "majority-label" windows:
+  label = mode(restimulus[i:i+L])
+  keep all windows
+  Looser, includes some transition windows. Many DL papers use this.
+
+  For both policies: explicitly decide:
+  - Stride: 10 ms (literature standard) for DL training; you may want 100 ms or 200 ms for classical-ML feature
+  pipelines (Track 1) to keep the dataset small.
+  - Rest class: include 0 as a class (→ 41 classes for E1+E2 combined, 18 for E1 alone) OR drop rest windows entirely (→
+   40 classes for E1+E2). Both papers report numbers including rest. Recommendation: keep rest as class 0 — this is what
+   published numbers compare against.
+
+  Expected window count for subject 1, E1 alone (sanity number)
+
+  - Movement samples: 17 movements × 6 reps × 5 s × 2000 Hz = 1,020,000 samples
+  - Rest samples: ~788,000 samples
+  - Pure-class windows at L=800, stride=20: roughly (1808331 − 800) / 20 ≈ 90,400 windows total, of which ~3 % are
+  dropped as transitions, leaving ~88,000 windows.
+
+  Scale that up: 40 subjects × E1+E2 ≈ ~7 million windows at L=800, stride=20. You will not store that materialized; see
+   §G.
+
+  ---
+  F. Label-data verification recipe (do this on subject 1 once)
+
+  Before you write any heavy pipeline code, run these checks on S1_E1_A1.mat and confirm the numbers. Each is a
+  one-liner in Python.
+
+  import scipy.io as sio
+  import numpy as np
+  m = sio.loadmat('S1_E1_A1.mat')
+  emg, restim, rerep = m['emg'], m['restimulus'].ravel(), m['rerepetition'].ravel()
+
+  # 1. duration check
+  assert abs(len(emg)/2000 - 904.16) < 1.0           # ~904 s
+
+  # 2. label namespace
+  assert set(np.unique(restim).tolist()) == set(range(0, 18))    # {0, 1..17}
+
+  # 3. repetition namespace
+  assert set(np.unique(rerep).tolist()) == set(range(0, 7))      # {0, 1..6}
+
+  # 4. expected (class, rep) cells: 17 movements × 6 reps = 102
+  pairs = set(zip(restim.tolist(), rerep.tolist())) - {(0,0)}
+  assert len(pairs) == 102
+
+  # 5. each (movement k, rep r) block is contiguous and ~5 s long
+  for k in range(1, 18):
+      for r in range(1, 7):
+          idx = np.where((restim == k) & (rerep == r))[0]
+          assert idx.max() - idx.min() == len(idx) - 1     # contiguous
+          assert 9000 < len(idx) < 11000                   # ~5s @ 2kHz, allow ±0.5s
+
+  # 6. each rest block (between movements) is contiguous and ~3 s long
+  # 7. visual: plot emg[idx0:idx1, :] with restimulus overlaid for one (k, r) pair
+  #    EMG burst envelope should rise within ~50 ms of restimulus going non-zero
+  #    (it should NOT lead by 100–300 ms — that would mean you used `stimulus` not `restimulus`)
+
+  If checks 1–6 pass and the visual plot looks tight (no lead), your label-to-signal alignment is correct and you can
+  trust the downstream pipeline.
+
+  ---
+  G. Storage math for DB2 specifically
+
+  Per subject (E1+E2 only, the classification subset), float32:
+
+  ┌───────────────────────────┬──────────┬───────────────────────────────────────────┐
+  │          Stream           │   Cols   │ Bytes/subject (E1+E2 ≈ 3,200,000 samples) │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ emg                       │       12 │                                    154 MB │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ acc                       │       36 │                                    461 MB │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ glove                     │       22 │                                    282 MB │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ inclin                    │        2 │                                     26 MB │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ restimulus + rerepetition │ 2 (int8) │                                      6 MB │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ Total                     │          │                     ~930 MB raw / subject │
+  ├───────────────────────────┼──────────┼───────────────────────────────────────────┤
+  │ EMG-only + labels         │  14 cols │                         ~157 MB / subject │
+  └───────────────────────────┴──────────┴───────────────────────────────────────────┘
+
+  For all 40 subjects, EMG + labels only ≈ 6.3 GB. With all sensors ≈ 37 GB.
+
+  Materialized windows at L=800, stride=20 (≈ 87,000 windows/subject, EMG only):
+  87,000 × 12 × 800 × 4 B = 3.34 GB / subject → ~134 GB across DB2 just for EMG windows.
+
+  This is the central efficiency observation. You have two clean choices:
+
+  - Plan A — Raw signals + window manifest (recommended). One HDF5 per subject containing the raw float32 streams (emg,
+  optionally acc, glove, inclin) plus the int8 restimulus/rerepetition. A small (~50 MB) Parquet manifest lists every
+  valid window: (subject_id, exercise_id, file_path, start_sample, label, repetition_id). PyTorch Dataset.__getitem__(i)
+   opens the HDF5, slices [start:start+L] — HDF5 chunked reads are microseconds. DB2 EMG-only fits in 6.3 GB on disk;
+  manifest in ~50 MB. Window length / stride / pure-vs-majority can be changed by regenerating the manifest in seconds,
+  no re-prep.
+  - Plan B — Materialized windows. One HDF5 per subject (or per group of subjects) with shape (N_windows_in_file, 12,
+  800) plus parallel y, repetition, subject. Disk: ~134 GB EMG-only. Simpler to read at training time, but: re-deciding
+  window size means re-running the prep (hours), changing stride means re-running, adding majority-vote means
+  re-running. Locks you in.
+
+  On your "5–6 files for DB2" intuition:
+  - If you do Plan A (raw): 40 files of 157 MB EMG-only is fine; or 8 files of ~5 subjects each is also fine. File count
+   barely matters because the manifest abstracts it.
+  - If you do Plan B (materialized): per-subject is cleanest for LOSO. Multi-subject grouping needs careful indexing
+  per-subject within the file. 5–6 files means each file holds 7–8 subjects which is workable.
+
+  There is no DB2-specific reason that 40 subjects is "too many to fit in one file". The disk constraint comes from
+  materialized windows, not from raw data. The right design choice is determined by Plan A vs Plan B, not by the number
+  of subjects.
+
+  ---
+  H. Design flaws in your current plan (DB2-only)
+
+  1. Schema (num_signals, num_channels, segment_length) is missing the labels and metadata. You cannot do LOSO, can't
+  reproduce the standard rep 2&5 test split, can't debug without subject_id, repetition_id, exercise_id,
+  window_start_sample stored alongside.
+  2. Materialized overlapping windows waste ~20–40× disk (Plan B numbers above). For ONE dataset it's tolerable; the
+  moment you scale you'll regret it. Plan A's raw + manifest is materially better and not more complex if you use a
+  WindowDataset wrapper.
+  3. No stated policy for stimulus vs restimulus. Lock this in: restimulus for DB2.
+  4. No stated policy for rest-class handling. Lock this in: keep rest as class 0 to be comparable to published
+  benchmarks.
+  5. No stated policy for transition windows. Lock this in: pure-class for DB2 (drop transitions).
+  6. No stated policy for normalization. Z-score per channel using stats computed only on the training repetitions (1,
+  3, 4, 6); save the stats with the dataset so they're reapplied identically at inference.
+  7. No plan to merge E1 + E2 label spaces. You need the +17 offset rule for E2 (and a flag (exercise_id == 2) so you
+  can always trace back).
+  8. No plan for ACC. P2 shows EMG+ACC gives ~5 % accuracy gain. Don't drop ACC at ingestion; you can ignore it at the
+  model later if you want EMG-only.
+  split, can't debug without subject_id, repetition_id, exercise_id, window_start_sample stored alongside.
+  2. Materialized overlapping windows waste ~20–40× disk (Plan B numbers above). For ONE dataset it's tolerable; the moment you scale you'll regret it. Plan
+   A's raw + manifest is materially better and not more complex if you use a WindowDataset wrapper.
+  3. No stated policy for stimulus vs restimulus. Lock this in: restimulus for DB2.
+  4. No stated policy for rest-class handling. Lock this in: keep rest as class 0 to be comparable to published benchmarks.
+  5. No stated policy for transition windows. Lock this in: pure-class for DB2 (drop transitions).
+  6. No stated policy for normalization. Z-score per channel using stats computed only on the training repetitions (1, 3, 4, 6); save the stats with the
+  dataset so they're reapplied identically at inference.
+  7. No plan to merge E1 + E2 label spaces. You need the +17 offset rule for E2 (and a flag (exercise_id == 2) so you can always trace back).
+  8. No plan for ACC. P2 shows EMG+ACC gives ~5 % accuracy gain. Don't drop ACC at ingestion; you can ignore it at the model later if you want EMG-only.
+  9. "Keep all batches in RAM" doesn't scale even for DB2 alone if you materialize windows (~134 GB EMG-only). With Plan A the manifest is tiny; with Plan B
+   you'd page from disk anyway. PyTorch DataLoader(num_workers=8, pin_memory=True) already does optimal streaming.
+  10. No verification step in the plan. Step F above must run before any model is trained, and the result should be saved (e.g. as a verify_subject1.json
+  artifact in the dataset folder).
+
+  ---
+  I. Open questions before I write code
+
+  These are the only forks where I genuinely need your input — everything else above I'll commit to defaults and you can override later.
+
+  1. Plan A (raw + manifest) vs Plan B (materialized windows)? I strongly recommend A. If you say A, I'll lay out the HDF5 + Parquet schema and we run on
+  subject 1.
+  2. Scope for the first run: subject 1 only? E1 only, or E1+E2? E3 should stay out of classification regardless.
+  3. Auxiliary modalities to keep: acc only (recommended), or also glove and inclin (cheap, small)?
+  4. Window length / stride for the first prep — confirm 400 ms / 10 ms (literature standard for DB2)? Or do you want a different starting point for Track 1
+   vs Track 2?
+  5. Rest class: keep as class 0 (recommended) or drop?
+  6. File granularity if Plan A: one HDF5 per subject (recommended for LOSO clarity), or grouped (your "5–6 files" idea)?
+
+  Once you answer 1–6, I'll write the prep scripts and the verification suite for subject 1, and we can lock the pattern before scaling to all 40 subjects.
+
+✻ Worked for 3m 59s
+
+※ recap: We're designing a DB2-only data prep pipeline (segmentation + HDF5 storage) starting with subject 1. I'm waiting on your answers to 6 questions
+  covering Plan A vs B, scope, modalities, window size, rest class, and file granularity. (disable recaps in /config)
+  keep all windows
+  Looser, includes some transition windows. Many DL papers use this.
+
+  For both policies: explicitly decide:
+  - Stride: 10 ms (literature standard) for DL training; you may want 100 ms or 200 ms
+   for classical-ML feature pipelines (Track 1) to keep the dataset small.
+  - Rest class: include 0 as a class (→ 41 classes for E1+E2 combined, 18 for E1
+  alone) OR drop rest windows entirely (→ 40 classes for E1+E2). Both papers report
+  numbers including rest. Recommendation: keep rest as class 0 — this is what
+  published numbers compare against.
+
+  Expected window count for subject 1, E1 alone (sanity number)
+
+  - Movement samples: 17 movements × 6 reps × 5 s × 2000 Hz = 1,020,000 samples
+  - Rest samples: ~788,000 samples
+  - Pure-class windows at L=800, stride=20: roughly (1808331 − 800) / 20 ≈ 90,400
+  windows total, of which ~3 % are dropped as transitions, leaving ~88,000 windows.
+
+  Scale that up: 40 subjects × E1+E2 ≈ ~7 million windows at L=800, stride=20. You
+  will not store that materialized; see §G.
+
+  ---
+  F. Label-data verification recipe (do this on subject 1 once)
+
+  Before you write any heavy pipeline code, run these checks on S1_E1_A1.mat and
+  confirm the numbers. Each is a one-liner in Python.
+
+  import scipy.io as sio
+  import numpy as np
+  m = sio.loadmat('S1_E1_A1.mat')
+  emg, restim, rerep = m['emg'], m['restimulus'].ravel(), m['rerepetition'].ravel()
+
+  # 1. duration check
+  assert abs(len(emg)/2000 - 904.16) < 1.0           # ~904 s
+
+  # 2. label namespace
+  assert set(np.unique(restim).tolist()) == set(range(0, 18))    # {0, 1..17}
+
+  # 3. repetition namespace
+  assert set(np.unique(rerep).tolist()) == set(range(0, 7))      # {0, 1..6}
+
+  # 4. expected (class, rep) cells: 17 movements × 6 reps = 102
+  pairs = set(zip(restim.tolist(), rerep.tolist())) - {(0,0)}
+  assert len(pairs) == 102
+
+  # 5. each (movement k, rep r) block is contiguous and ~5 s long
+  for k in range(1, 18):
+      for r in range(1, 7):
+          idx = np.where((restim == k) & (rerep == r))[0]
+          assert idx.max() - idx.min() == len(idx) - 1     # contiguous
+          assert 9000 < len(idx) < 11000                   # ~5s @ 2kHz, allow ±0.5s
+
+  # 6. each rest block (between movements) is contiguous and ~3 s long
+  # 7. visual: plot emg[idx0:idx1, :] with restimulus overlaid for one (k, r) pair
+  #    EMG burst envelope should rise within ~50 ms of restimulus going non-zero
+  #    (it should NOT lead by 100–300 ms — that would mean you used `stimulus` not
+  `restimulus`)
+
+  If checks 1–6 pass and the visual plot looks tight (no lead), your label-to-signal
+  alignment is correct and you can trust the downstream pipeline.
+
+  ---
+  G. Storage math for DB2 specifically
+
+  Per subject (E1+E2 only, the classification subset), float32:
+
+  ┌──────────────────────────┬─────────┬─────────────────────────────────────────┐
+  │          Stream          │  Cols   │    Bytes/subject (E1+E2 ≈ 3,200,000     │
+  │                          │         │                samples)                 │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ emg                      │      12 │                                  154 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ acc                      │      36 │                                  461 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ glove                    │      22 │                                  282 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ inclin                   │       2 │                                   26 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ restimulus +             │      2  │                                    6 MB │
+  │ rerepetition             │  (int8) │                                         │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ Total                    │         │                   ~930 MB raw / subject │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ EMG-only + labels        │ 14 cols │                       ~157 MB / subject │
+  └──────────────────────────┴─────────┴─────────────────────────────────────────┘
+
+  For all 40 subjects, EMG + labels only ≈ 6.3 GB. With all sensors ≈ 37 GB.
+
+  Materialized windows at L=800, stride=20 (≈ 87,000 windows/subject, EMG only):
+  87,000 × 12 × 800 × 4 B = 3.34 GB / subject → ~134 GB across DB2 just for EMG
+  windows.
+
+  This is the central efficiency observation. You have two clean choices:
+
+  - Plan A — Raw signals + window manifest (recommended). One HDF5 per subject
+  containing the raw float32 streams (emg, optionally acc, glove, inclin) plus the
+  int8 restimulus/rerepetition. A small (~50 MB) Parquet manifest lists every valid
+  window: (subject_id, exercise_id, file_path, start_sample, label, repetition_id).
+  PyTorch Dataset.__getitem__(i) opens the HDF5, slices [start:start+L] — HDF5 chunked
+   reads are microseconds. DB2 EMG-only fits in 6.3 GB on disk; manifest in ~50 MB.
+  Window length / stride / pure-vs-majority can be changed by regenerating the
+  manifest in seconds, no re-prep.
+  - Plan B — Materialized windows. One HDF5 per subject (or per group of subjects)
+  with shape (N_windows_in_file, 12, 800) plus parallel y, repetition, subject. Disk:
+  ~134 GB EMG-only. Simpler to read at training time, but: re-deciding window size
+  means re-running the prep (hours), changing stride means re-running, adding
+  majority-vote means re-running. Locks you in.
+
+  On your "5–6 files for DB2" intuition:
+  - If you do Plan A (raw): 40 files of 157 MB EMG-only is fine; or 8 files of ~5
+  subjects each is also fine. File count barely matters because the manifest abstracts
+   it.
+  - If you do Plan B (materialized): per-subject is cleanest for LOSO. Multi-subject
+  grouping needs careful indexing per-subject within the file. 5–6 files means each
+  file holds 7–8 subjects which is workable.
+
+  There is no DB2-specific reason that 40 subjects is "too many to fit in one file".
+  The disk constraint comes from materialized windows, not from raw data. The right
+  design choice is determined by Plan A vs Plan B, not by the number of subjects.
+
+  ---
+  H. Design flaws in your current plan (DB2-only)
+
+  1. Schema (num_signals, num_channels, segment_length) is missing the labels and
+  metadata. You cannot do LOSO, can't reproduce the standard rep 2&5 test split, can't
+   debug without subject_id, repetition_id, exercise_id, window_start_sample stored
+  alongside.
+  2. Materialized overlapping windows waste ~20–40× disk (Plan B numbers above). For
+  ONE dataset it's tolerable; the moment you scale you'll regret it. Plan A's raw +
+  manifest is materially better and not more complex if you use a WindowDataset
+  wrapper.
+  3. No stated policy for stimulus vs restimulus. Lock this in: restimulus for DB2.
+  4. No stated policy for rest-class handling. Lock this in: keep rest as class 0 to
+  be comparable to published benchmarks.
+  5. No stated policy for transition windows. Lock this in: pure-class for DB2 (drop
+  transitions).
+  6. No stated policy for normalization. Z-score per channel using stats computed only
+   on the training repetitions (1, 3, 4, 6); save the stats with the dataset so
+  they're reapplied identically at inference.
+  7. No plan to merge E1 + E2 label spaces. You need the +17 offset rule for E2 (and a
+   flag (exercise_id == 2) so you can always trace back).
+  8. No plan for ACC. P2 shows EMG+ACC gives ~5 % accuracy gain. Don't drop ACC at
+  ingestion; you can ignore it at the model later if you want EMG-only.
+  9. "Keep all batches in RAM" doesn't scale even for DB2 alone if you materialize
+  windows (~134 GB EMG-only). With Plan A the manifest is tiny; with Plan B you'd page
+   from disk anyway. PyTorch DataLoader(num_workers=8, pin_memory=True) already does
+  optimal streaming.
+  10. No verification step in the plan. Step F above must run before any model is
+  trained, and the result should be saved (e.g. as a verify_subject1.json artifact in
+  the dataset folder).
+
+  ---
+  I. Open questions before I write code
+
+  These are the only forks where I genuinely need your input — everything else above
+  I'll commit to defaults and you can override later.
+
+  1. Plan A (raw + manifest) vs Plan B (materialized windows)? I strongly recommend A.
+   If you say A, I'll lay out the HDF5 + Parquet schema and we run on subject 1.
+  2. Scope for the first run: subject 1 only? E1 only, or E1+E2? E3 should stay out of
+   classification regardless.
+  3. Auxiliary modalities to keep: acc only (recommended), or also glove and inclin
+  (cheap, small)?
+  4. Window length / stride for the first prep — confirm 400 ms / 10 ms (literature
+  standard for DB2)? Or do you want a different starting point for Track 1 vs Track 2?
+  5. Rest class: keep as class 0 (recommended) or drop?
+  6. File granularity if Plan A: one HDF5 per subject (recommended for LOSO clarity),
+  or grouped (your "5–6 files" idea)?
+
+  Once you answer 1–6, I'll write the prep scripts and the verification suite for
+  subject 1, and we can lock the pattern before scaling to all 40 subjects.
+
+✻ Worked for 3m 59s
+
+※ recap: We're designing a DB2-only data prep pipeline (segmentation + HDF5 storage)
+  starting with subject 1. I'm waiting on your answers to 6 questions covering Plan A
+  vs B, scope, modalities, window size, rest class, and file granularity. (disable
+  recaps in /config)
+
+❯ /resume how do i start this conversation abt datasets
+  ⎿  Session how do i start this conversation abt datasets was not found.
+
+❯ /config
+  ⎿  Config dialog dismissed
+
+※ recap: We're designing a DB2-only data prep pipeline (segmentation + HDF5 storage) starting with subject 1. I'm waiting on your answers to 6 questions
+  covering Plan A vs B, scope, modalities, window size, rest class, and file granularity. (disable recaps in /config)
+
+
+  keep all windows
+  Looser, includes some transition windows. Many DL papers use this.
+
+  For both policies: explicitly decide:
+  - Stride: 10 ms (literature standard) for DL training; you may want 100 ms or 200 ms
+   for classical-ML feature pipelines (Track 1) to keep the dataset small.
+  - Rest class: include 0 as a class (→ 41 classes for E1+E2 combined, 18 for E1
+  alone) OR drop rest windows entirely (→ 40 classes for E1+E2). Both papers report
+  numbers including rest. Recommendation: keep rest as class 0 — this is what
+  published numbers compare against.
+
+  Expected window count for subject 1, E1 alone (sanity number)
+
+  - Movement samples: 17 movements × 6 reps × 5 s × 2000 Hz = 1,020,000 samples
+  - Rest samples: ~788,000 samples
+  - Pure-class windows at L=800, stride=20: roughly (1808331 − 800) / 20 ≈ 90,400
+  windows total, of which ~3 % are dropped as transitions, leaving ~88,000 windows.
+
+  Scale that up: 40 subjects × E1+E2 ≈ ~7 million windows at L=800, stride=20. You
+  will not store that materialized; see §G.
+
+  ---
+  F. Label-data verification recipe (do this on subject 1 once)
+
+  Before you write any heavy pipeline code, run these checks on S1_E1_A1.mat and
+  confirm the numbers. Each is a one-liner in Python.
+
+  import scipy.io as sio
+  import numpy as np
+  m = sio.loadmat('S1_E1_A1.mat')
+  emg, restim, rerep = m['emg'], m['restimulus'].ravel(), m['rerepetition'].ravel()
+
+  # 1. duration check
+  assert abs(len(emg)/2000 - 904.16) < 1.0           # ~904 s
+
+  # 2. label namespace
+  assert set(np.unique(restim).tolist()) == set(range(0, 18))    # {0, 1..17}
+
+  # 3. repetition namespace
+  assert set(np.unique(rerep).tolist()) == set(range(0, 7))      # {0, 1..6}
+
+  # 4. expected (class, rep) cells: 17 movements × 6 reps = 102
+  pairs = set(zip(restim.tolist(), rerep.tolist())) - {(0,0)}
+  assert len(pairs) == 102
+
+  # 5. each (movement k, rep r) block is contiguous and ~5 s long
+  for k in range(1, 18):
+      for r in range(1, 7):
+          idx = np.where((restim == k) & (rerep == r))[0]
+          assert idx.max() - idx.min() == len(idx) - 1     # contiguous
+          assert 9000 < len(idx) < 11000                   # ~5s @ 2kHz, allow ±0.5s
+
+  # 6. each rest block (between movements) is contiguous and ~3 s long
+  # 7. visual: plot emg[idx0:idx1, :] with restimulus overlaid for one (k, r) pair
+  #    EMG burst envelope should rise within ~50 ms of restimulus going non-zero
+  #    (it should NOT lead by 100–300 ms — that would mean you used `stimulus` not
+  `restimulus`)
+
+  If checks 1–6 pass and the visual plot looks tight (no lead), your label-to-signal
+  alignment is correct and you can trust the downstream pipeline.
+
+  ---
+  G. Storage math for DB2 specifically
+
+  Per subject (E1+E2 only, the classification subset), float32:
+
+  ┌──────────────────────────┬─────────┬─────────────────────────────────────────┐
+  │          Stream          │  Cols   │    Bytes/subject (E1+E2 ≈ 3,200,000     │
+  │                          │         │                samples)                 │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ emg                      │      12 │                                  154 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ acc                      │      36 │                                  461 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ glove                    │      22 │                                  282 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ inclin                   │       2 │                                   26 MB │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ restimulus +             │      2  │                                    6 MB │
+  │ rerepetition             │  (int8) │                                         │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ Total                    │         │                   ~930 MB raw / subject │
+  ├──────────────────────────┼─────────┼─────────────────────────────────────────┤
+  │ EMG-only + labels        │ 14 cols │                       ~157 MB / subject │
+  └──────────────────────────┴─────────┴─────────────────────────────────────────┘
+
+  For all 40 subjects, EMG + labels only ≈ 6.3 GB. With all sensors ≈ 37 GB.
+
+  Materialized windows at L=800, stride=20 (≈ 87,000 windows/subject, EMG only):
+  87,000 × 12 × 800 × 4 B = 3.34 GB / subject → ~134 GB across DB2 just for EMG
+  windows.
+
+  This is the central efficiency observation. You have two clean choices:
+
+  - Plan A — Raw signals + window manifest (recommended). One HDF5 per subject
+  containing the raw float32 streams (emg, optionally acc, glove, inclin) plus the
+  int8 restimulus/rerepetition. A small (~50 MB) Parquet manifest lists every valid
+  window: (subject_id, exercise_id, file_path, start_sample, label, repetition_id).
+  PyTorch Dataset.__getitem__(i) opens the HDF5, slices [start:start+L] — HDF5 chunked
+   reads are microseconds. DB2 EMG-only fits in 6.3 GB on disk; manifest in ~50 MB.
+  Window length / stride / pure-vs-majority can be changed by regenerating the
+  manifest in seconds, no re-prep.
+  - Plan B — Materialized windows. One HDF5 per subject (or per group of subjects)
+  with shape (N_windows_in_file, 12, 800) plus parallel y, repetition, subject. Disk:
+  ~134 GB EMG-only. Simpler to read at training time, but: re-deciding window size
+  means re-running the prep (hours), changing stride means re-running, adding
+  majority-vote means re-running. Locks you in.
+
+  On your "5–6 files for DB2" intuition:
+  - If you do Plan A (raw): 40 files of 157 MB EMG-only is fine; or 8 files of ~5
+  subjects each is also fine. File count barely matters because the manifest abstracts
+   it.
+  - If you do Plan B (materialized): per-subject is cleanest for LOSO. Multi-subject
+  grouping needs careful indexing per-subject within the file. 5–6 files means each
+  file holds 7–8 subjects which is workable.
+
+  There is no DB2-specific reason that 40 subjects is "too many to fit in one file".
+  The disk constraint comes from materialized windows, not from raw data. The right
+  design choice is determined by Plan A vs Plan B, not by the number of subjects.
+
+  ---
+  H. Design flaws in your current plan (DB2-only)
+
+  1. Schema (num_signals, num_channels, segment_length) is missing the labels and
+  metadata. You cannot do LOSO, can't reproduce the standard rep 2&5 test split, can't
+   debug without subject_id, repetition_id, exercise_id, window_start_sample stored
+  alongside.
+  2. Materialized overlapping windows waste ~20–40× disk (Plan B numbers above). For
+  ONE dataset it's tolerable; the moment you scale you'll regret it. Plan A's raw +
+  manifest is materially better and not more complex if you use a WindowDataset
+  wrapper.
+  3. No stated policy for stimulus vs restimulus. Lock this in: restimulus for DB2.
+  4. No stated policy for rest-class handling. Lock this in: keep rest as class 0 to
+  be comparable to published benchmarks.
+  5. No stated policy for transition windows. Lock this in: pure-class for DB2 (drop
+  transitions).
+  6. No stated policy for normalization. Z-score per channel using stats computed only
+   on the training repetitions (1, 3, 4, 6); save the stats with the dataset so
+  they're reapplied identically at inference.
+  7. No plan to merge E1 + E2 label spaces. You need the +17 offset rule for E2 (and a
+   flag (exercise_id == 2) so you can always trace back).
+  8. No plan for ACC. P2 shows EMG+ACC gives ~5 % accuracy gain. Don't drop ACC at
+  ingestion; you can ignore it at the model later if you want EMG-only.
+  9. "Keep all batches in RAM" doesn't scale even for DB2 alone if you materialize
+  windows (~134 GB EMG-only). With Plan A the manifest is tiny; with Plan B you'd page
+   from disk anyway. PyTorch DataLoader(num_workers=8, pin_memory=True) already does
+  optimal streaming.
+  10. No verification step in the plan. Step F above must run before any model is
+  trained, and the result should be saved (e.g. as a verify_subject1.json artifact in
+  the dataset folder).
+
+  ---
+  I. Open questions before I write code
+
+  These are the only forks where I genuinely need your input — everything else above
+  I'll commit to defaults and you can override later.
+
+  1. Plan A (raw + manifest) vs Plan B (materialized windows)? I strongly recommend A.
+   If you say A, I'll lay out the HDF5 + Parquet schema and we run on subject 1.
+  2. Scope for the first run: subject 1 only? E1 only, or E1+E2? E3 should stay out of
+   classification regardless.
+  3. Auxiliary modalities to keep: acc only (recommended), or also glove and inclin
+  (cheap, small)?
+  4. Window length / stride for the first prep — confirm 400 ms / 10 ms (literature
+  standard for DB2)? Or do you want a different starting point for Track 1 vs Track 2?
+  5. Rest class: keep as class 0 (recommended) or drop?
+  6. File granularity if Plan A: one HDF5 per subject (recommended for LOSO clarity),
+  or grouped (your "5–6 files" idea)?
+
+  Once you answer 1–6, I'll write the prep scripts and the verification suite for
+  subject 1, and we can lock the pattern before scaling to all 40 subjects.
+
+✻ Worked for 3m 59s
+
+※ recap: We're designing a DB2-only data prep pipeline (segmentation + HDF5 storage)
+  starting with subject 1. I'm waiting on your answers to 6 questions covering Plan A
+  vs B, scope, modalities, window size, rest class, and file granularity. (disable
+  recaps in /config)
+
+❯ /resume how do i start this conversation abt datasets
+  ⎿  Session how do i start this conversation abt datasets was not found.
+
+❯ /config
+  ⎿  Config dialog dismissed
+
+❯ how i start this conversation regarding datasets we had previously
+
+● Easiest way is just to answer the 6 open questions from where we paused — I left off
+
+❯ /resume how do i start this conversation abt datasets
+  ⎿  Session how do i start this conversation abt datasets was not found.
+
+❯ /config
+  ⎿  Config dialog dismissed
+
+❯ how i start this conversation regarding datasets we had previously
+
+● Easiest way is just to answer the 6 open questions from where we paused — I left off waiting on those before writing any prep code. Quick recap so you can
+   pick up:
+
+  Where we are: DB2-only, focus subject 1, you want HDF5-based indexed batching. I read both Ninapro PDFs + the official DB2 page, mapped every variable in
+  your S1_E1_A1.mat workspace, and listed design flaws. No code written yet.
+
+  The 6 forks I need your call on:
+  1. Plan A (raw HDF5 + window manifest) vs Plan B (materialized windows). I recommend A.
+  2. First-run scope: subject 1 only, E1 only or E1+E2? (E3 stays out — it's force regression.)
+  3. Auxiliary modalities to keep: acc only, or also glove + inclin?
+  4. Window length / stride: 400 ms / 10 ms (literature standard)?
+  5. Rest class: keep as class 0, or drop?
+  6. File granularity (if Plan A): one HDF5 per subject, or grouped 5–6 files?
+
+  Three ways to resume the thread cleanly:
+  - Just answer 1–6 in your next message — fastest, and I'll write the schema + verification script on subject 1.
+  - Say "use defaults" and I'll go with: Plan A, subject 1 + E1+E2, EMG+ACC, 400 ms/10 ms, rest as class 0, one HDF5 per subject. Then we adjust.
+  - Re-open with a fresh prompt like "DB2 prep — proceed with Plan A defaults on subject 1" — same as above but explicit.
+
+  If you also want me to log the prior conversation into .claude/sessions/SESSIONS.md (per your CLAUDE.md rules) so future sessions auto-pick this up
+  without re-asking, say the word and I'll append an entry.
+
+✻ Baked for 32s
+
+※ recap: Goal is to prep Ninapro DB2 into HDF5 for indexed-batch training; current task is locking the prep design before writing code. Next action: answer
+  the 6 open questions (Plan A vs B, scope, modalities, window 400/10 ms, rest class, file granularity). (disable recaps in /config)

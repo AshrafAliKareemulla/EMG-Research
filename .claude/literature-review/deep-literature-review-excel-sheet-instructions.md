@@ -487,3 +487,172 @@ file in that folder first.
    as bullets inside a column value.
 9. Follow `deep-literature-review-instructions.md` for the content of every column.
 ```
+
+---
+
+## 7. Working pace, cross-checking, and asking for help (MANDATORY)
+
+This section is operational guidance about *how you work through the papers*, not about
+file formats. These rules carry the same weight as the hard rules in Section 6 — they
+exist because the literature review is **judgment-intensive and high-stakes**: every
+JSON ends up in the final Excel that the user will use for their research write-up. A
+fast-but-sloppy review is worse than no review at all.
+
+### 7.1 Take proper time. Do not rush.
+
+- **Time is not a constraint.** Treat each paper as if it is the only paper you will
+  review today. There is no schedule pressure, no quota to hit, no token budget to
+  protect by truncating analysis. Deliver one careful, fully cross-checked JSON per
+  paper before moving to the next.
+- **Read each paper twice end-to-end** before writing anything (already in Section 3,
+  re-stated here because it is the most-violated rule). The first pass is for
+  understanding the paper as a whole — what the authors claim, what they actually did,
+  how the results connect to the methodology. The second pass is for capturing exact
+  numbers, table values, equation forms, hyperparameters, and statistical-test
+  outcomes that go into individual columns.
+- **For long or complex papers, read three times.** The third pass is targeted —
+  re-read just the methods + results + tables before drafting columns 13–17, and
+  re-read just the discussion + limitations before drafting columns 18–20.
+- **Re-read targeted sections during writing.** When drafting a specific column, scan
+  the paper again for the relevant section instead of working from memory. This is
+  not optional — memory is unreliable across 35 columns.
+- **No batch / parallel paper review.** Never start reading paper N+1 while still
+  writing the JSON for paper N. Finish, cross-check, and confirm one paper before
+  picking up the next.
+
+### 7.2 Reason, reiterate, analyse — then write
+
+The three Group-2 analysis columns (18–20) and the 14 Group-3 scientific-question
+columns (21–34) are the high-value content of the entire review. For each:
+
+1. **Reason** — given what the paper actually did, what is the honest answer to the
+   sub-question? Distinguish "authors claim X" from "evidence shows X".
+2. **Reiterate** — read the relevant evidence in the paper again. Confirm the number
+   you are about to write matches the table or sentence it came from.
+3. **Analyse** — for columns 18–20 especially, ask: which limitation actually
+   matters? What specific experiment would address it? What would change a reviewer's
+   mind? Vague critiques like "small sample" are not enough — say *what specifically
+   should be done about it and why it matters*.
+
+Only after all three steps for a given column should you write the value into the
+JSON. Skipping straight from "I read the paper" to "I am writing" is exactly the
+failure mode the user has been correcting.
+
+### 7.3 Mandatory cross-check after every paper — full procedure
+
+Section 4.5 lists the validation script. That script catches *structural* errors. It
+does **not** catch content errors. Do both of the following after every JSON:
+
+**Step A — structural validation (automatic):** run the Python snippet from Section 4.5.
+Confirm: valid JSON, 39 keys present, no extras, no empties. If any check fails, fix
+before moving on.
+
+**Step B — content cross-check (manual, per paper):** re-open the source mineru
+markdown and verify, value by value:
+
+1. **`paper_id` and `abstract_score`** match the abstract-screening sheet.
+2. **`mineru_file`** matches the actual file you read.
+3. **`col_01_paper_title`** matches the paper's title exactly.
+4. **`col_02_pdf_link`** matches the IEEE Xplore PDF link.
+5. **`col_04_datasets_used`** — every subject count, channel count, sampling rate,
+   class count is checked against the paper's "Materials" / "Dataset" section.
+6. **`col_06_preprocessing`** — every filter cutoff, order, window length, overlap is
+   checked against the paper's "Preprocessing" / "Methods" section.
+7. **`col_13_methodology_training`** — every hyperparameter (LR, batch, epochs,
+   architecture layer sizes) is checked against the paper's "Training" / "Network
+   Architecture" section.
+8. **`col_14_evaluation_protocol`** — the train/test split, CV scheme, and any
+   subject-disjoint vs random claim is checked against the paper's "Evaluation"
+   section. This column is where leakage gets missed.
+9. **`col_16_main_results`** — every accuracy / RMSE / R² / F1 number is checked
+   against the paper's Tables and Result figures. Cross-check both the headline mean
+   and the standard deviation. Note any inconsistencies between the paper's prose and
+   its tables in `col_35`.
+10. **`col_17_reproducibility`** — code/data/weights/seeds claims are checked against
+    the paper's actual statements (look for explicit URLs / "publicly available" /
+    "code released").
+11. **`col_18` to `col_20`** — re-read your own analysis and ask: is each criticism
+    grounded in something the paper actually does or does not say? Remove any
+    speculation not anchored to the paper.
+12. **`col_21` to `col_34`** — for every `Y/N/Partial` answer, confirm the one-line
+    evidence quote is grounded in the paper.
+13. **`col_35`** — describe the actual extraction quality faithfully. Flag any garbled
+    tables, malformed figures, missing equations.
+
+State out loud (in your message) when you have completed both Step A and Step B for a
+paper. Only then move to the next paper.
+
+### 7.4 Numbers and quotes — verify before you write
+
+- **Every reported number must trace to a specific table, equation, or sentence in
+  the paper.** If you cannot point to where a number comes from, you must not put it
+  in the JSON.
+- **Cross-check Tables against prose.** Papers often have small inconsistencies (e.g.
+  Table II mean stride accuracy 96.7 % vs per-subject mean of ~94 %). When you find
+  such an inconsistency, flag it explicitly in `col_35` with `⚠ Inconsistency:` and
+  in `col_18` if it materially affects the headline claim.
+- **Short quotes (under ~15 words) are encouraged when the wording is itself the
+  point.** Use them sparingly, and always with the section/table reference.
+- **Distinguish `Authors:` vs `Inferred:` prefixes** in your analysis columns when it
+  would otherwise be ambiguous whether a claim is the paper's or yours.
+
+### 7.5 When to stop and ask the user — IMMEDIATELY
+
+**Whenever the process gets stuck, you hit an API error, or you have doubts or
+questions (small doubt or big one doesn't matter), ask the user immediately.**
+
+Concretely, stop and ask the user — do not silently work around — in *any* of these
+situations:
+
+- **API error / tool failure.** Tool call returns an error you cannot resolve in one
+  retry. Report the exact error message and what you were trying to do.
+- **Missing or corrupted source file.** The mineru markdown for a paper does not
+  exist, is empty, or is so corrupted that even PDF fallback would not recover it.
+- **PDF fallback needed but you cannot read the PDF.** State clearly that you tried
+  the markdown, why it was unusable, and that you need guidance on whether to (a)
+  attempt to read the PDF, (b) skip the paper with a note, or (c) get the file
+  re-extracted.
+- **Score-vs-content mismatch you cannot resolve.** A paper is scored 5 but on
+  reading it is actually a 3 (or vice versa) — flag this to the user before deciding
+  how to treat it. Do not silently downgrade or upgrade.
+- **Ambiguity in the paper itself** that materially changes a column value (e.g.
+  "is the train/test split subject-disjoint or random?"; "does Table II's mean
+  contradict the per-subject values?"). Ask before guessing.
+- **Class count or task type ambiguous.** If methods say 8 classes but results table
+  shows 4, ask.
+- **Folder structure / IDs ambiguous.** If the paper-ID-to-arnumber mapping does not
+  produce a unique mineru file, ask before guessing.
+- **You're about to depart from these instructions.** Any planned deviation from
+  Sections 1–6 above (different column count, alternate JSON schema, different Excel
+  styling, splitting one paper into two JSONs, etc.) must be approved by the user
+  first.
+- **Small doubts count.** Even a one-line "I'm not sure if this number is RMSE in ms
+  or in degrees" is worth asking about. A 30-second clarification beats a wrong
+  JSON value buried in a 14-paper batch.
+
+**How to ask:** state the paper ID, the specific column or section affected, what
+you have already checked, and the candidate options you see. Keep it to a few short
+lines. Do not turn a question into a long defensive memo — short, specific, and
+honest.
+
+**Do not ask the user as a stalling tactic.** If the answer is clearly already in the
+paper or in these instructions, find it instead of asking. The threshold is: "is
+there a non-trivial chance I am about to record something wrong in the JSON?" — if
+yes, ask.
+
+### 7.6 Summary
+
+The user's standing instructions for this work:
+
+1. **Take proper time. Time is not the bottleneck. Quality is.**
+2. **Read each paper at least twice, three times if complex.**
+3. **Reason, reiterate, analyse — then write.**
+4. **Cross-check every JSON (structural Step A + content Step B) before moving on.**
+5. **Verify every number against its source table or sentence.**
+6. **Flag inconsistencies explicitly in `col_35`.**
+7. **Ask the user immediately on any API error, missing file, ambiguity, or doubt
+   (small or big — doesn't matter).**
+
+If you find yourself moving fast because the paper "seems simple", slow down. The
+simple-looking papers are the ones where details get missed.
+

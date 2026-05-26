@@ -384,3 +384,107 @@ Clearly mention if the mineru paper extraction is clear and there is no ambiguit
 For the three analysis columns (18, 19, 20), give the agent permission to be opinionated. The whole point of those columns is judgment, not extraction. A neutral cell ("the paper does not address X") is failure; a cell that says "the paper doesn't address X, and changing Y would likely help by Z" is success.
 
 Act like a Machine Learning Researcher with expertise in EMG Signals with more than 25 years of research experience. Remember these are your instructions on how to properly read a EMG research paper, the examples given for each column are just for your reference, you should fill it with your own findings and wording. You can be brief about your findings as well. Enter the contents for each column only after you have performed a through reading of the paper. Go through the entire paper's contents twice for proper understanding and information extraction. Avoid jargon and try to answer as many questions as possible, be concise, explore the novelty, what we can learn from this paper, what type of scientific questions this paper answering or answering which will help our research further in EMG space. Remember here for the scientific questions description, the paper might not explicitly tell what question it addresses or what are its scientific objectives. It is your own duty to identify what scientific questions is the paper answering if there are any. **TAKE YOUR TIME**, **REASON**, **REITERATE**, **ANALYZE** and only then note down the observations. Do not hurry the process, I want you to take all the time in the world, reason, reiterate, analyze and only then output the findings, DO NOT HURRY, no rush. This is the most important rule - do NOT rush.
+
+
+
+## 5. Quality Mandate (Standing User Instruction — Highest Priority)
+
+The user has stated these instructions explicitly and they OVERRIDE any default urge to move fast or compress work:
+
+1. **"No compromise on quality."** Every JSON must match the depth of the reference JSONs (~25–30K characters of content across the 35 columns). Vague answers in cols 18, 19, 20 or generic Y/N answers in cols 21–34 are failure, not success.
+2. **"Time is not important. I just want the quality at the best."** There is no deadline. Do not skip the second read. Do not skip the cross-check. Do not skip a sub-question. Do not write a one-line answer to col_18 when the paper deserves a paragraph of grounded critique.
+3. **"Do not rush the process. Take all the time in the world."** Read each paper twice end-to-end before writing anything. Re-read targeted sections (methods, results tables, discussion, limitations) while drafting the relevant columns. Memory is unreliable across 35 columns — always scan back.
+4. **Quality of cols 18, 19, 20 is the explicit deliverable.** These are opinionated analyst notes, not extraction. A col_18 entry like "small sample size is a limitation" is failure. A col_18 entry like "the 8 subjects are all right-handed males age 22–28 — homogeneous, and the headline 96 % accuracy under random 70/30 split likely drops 10–15 pp under LOSO; concrete fix: re-run LOSO with electrode-shift augmentation" is success.
+5. **Inconsistencies are gold.** When prose and tables disagree, when abstract numbers differ from results-section numbers, when the methods section says one thing and the results section says another — flag every one with `⚠ Inconsistency:` and the two conflicting values. The protocol explicitly asks for this and the user values it.
+
+
+
+## 6. Parallel Agent Dispatch — Best Practices (Learned Recipe)
+
+When a literature-review batch contains more papers than can be handled in one main-conversation context (typically > ~6–8 papers, where each consumes ~30K tokens of markdown + ~8–10K tokens of JSON), dispatch via **parallel subagents**. The recipe below has been validated across multiple waves and consistently produces high-depth JSONs (25–30K chars each) that match hand-written reference quality.
+
+### 6.1 Wave structure
+
+- **Each wave = 2 parallel subagents, each given ~10 papers.** Both run in background concurrently (`run_in_background: true`).
+- **Why 10 papers per agent (not more):** each subagent has a fresh ~200K-token context. At ~30K tokens of markdown read + ~8–10K of JSON written per paper, 10 papers fills roughly 80–90 % of the context window — enough to do the work carefully but not so much that the agent runs out of room for the second-read / cross-check rituals.
+- **Why 2 agents per wave (not 1, not 4):** 2 is the highest concurrency that keeps the main-conversation context light enough to validate results between waves. 1 agent serialises unnecessarily; 4+ agents create more validation backlog than the main thread can supervise.
+- **After each wave**: main thread runs structural validation on all 20 JSONs (39-key check + non-empty check + paper_id/abstract_score correctness + depth check), then dispatches the next wave. No quality drift across waves because each subagent's context is fresh.
+
+### 6.2 Agent briefing — what MUST be in every prompt
+
+A subagent starts with zero conversation context. The briefing must be self-contained and exhaustive. The template below has been validated to produce protocol-compliant, depth-matched JSONs:
+
+1. **The quality mandate up front, in caps**: `"THE USER HAS EXPLICITLY SAID: 'no compromise on quality' and 'I don't care about time.' Take this seriously."` This re-anchors the agent's pacing.
+2. **The exact paper list** as a table with `Paper ID | arnumber | Score | Title hint`. List them in the order to process. If the batch mixes scores (e.g., last score-4s + first score-3s), call this out explicitly and tell the agent to set `abstract_score` accordingly per paper.
+3. **All file paths** (working root, mineru_output, papers, _shared output) using absolute Windows paths.
+4. **Three protocol references** to read before starting:
+   - `.claude/literature-review/deep-literature-review-instructions.md`
+   - `.claude/literature-review/deep-literature-review-excel-sheet-instructions.md`
+   - The JSON template at `_shared/deep-review-json-template.json`
+5. **Three reference JSONs as style anchors** — the agent must read all three before writing its first JSON. Good anchors:
+   - One score-5 dataset paper (e.g., NSRE-353)
+   - One score-5 transfer-learning paper (e.g., NSRE-359)
+   - One score-4 complex-method paper (e.g., NSRE-011)
+   - Plus 1–2 recent peer JSONs from prior waves so the agent sees current depth target.
+6. **Per-paper procedure as a numbered list** that includes: read entire markdown (paginate via offset), reason, reiterate, analyse, write, validate immediately with the exact Python snippet below, content-cross-check, then advance.
+7. **The exact validation Bash command** — copy-paste ready, with `NSRE-NNN` as the placeholder for the agent to replace:
+```bash
+cd "E:/sEMG Research Enhanced/literature-review-papers/conferences-and-journals-complete-list/<FOLDER>/_shared" && python -c "
+import json
+d = json.load(open('NSRE-NNN.json', encoding='utf-8'))
+meta = ['paper_id','abstract_score','mineru_file','high_value_followup']
+cols = sorted(int(k.split('_')[1]) for k in d if k.startswith('col_'))
+miss = [m for m in meta if m not in d] + [f'col_{i:02d}' for i in range(1,36) if i not in cols]
+extra = [k for k in d if not k.startswith('col_') and k not in meta]
+empty = [k for k in d if isinstance(d[k],str) and not d[k].strip()]
+print('OK' if not (miss or extra or empty) else f'PROBLEM miss={miss} extra={extra} empty={empty}')
+"
+```
+8. **Hard rules** (one JSON per paper; no blanks; numbers traceable; `⚠ Inconsistency:` flag; cols 21–34 use `Q-ID: Y/N/Partial — one-line evidence` per sub-question; `Question not addressed.` only when entire theme is untouched; `high_value_followup` always filled with 🚩 HIGH-VALUE FOLLOW-UP for public code/data).
+9. **Stop-and-report conditions**: markdown AND PDF both missing/unreadable, arnumber doesn't match any file, tool error unresolved after one retry, about to deviate from any rule, genuine ambiguity that materially changes a column value.
+10. **Domain context for cols 19, 20, 34**: who the user is (the BTech researcher building Track-1 classical ML + Track-2 DL for ADL classification), primary datasets in use (EMAHA, NinaPro, BioPatRec), hardware budget (A5000 24 GB). Without this the agent's "is this reusable?" answers will be generic.
+11. **Final summary expectation**: when finished, agent reports ONE concise message listing papers completed (each with OK status), papers skipped (with why), `⚠ Inconsistency` flags raised, and anything ambiguous worth knowing for the cross-check.
+
+### 6.3 What NOT to do (anti-patterns)
+
+- ❌ **Don't dispatch a single agent with 25+ papers.** It will run out of context mid-batch and the last papers will be shallow or skipped.
+- ❌ **Don't tell the agent to "be brief" to save tokens.** That trades exactly the depth that matters (cols 18–20) for nothing.
+- ❌ **Don't skip the reference JSONs in the briefing.** Without style anchors the agent's depth drifts toward generic summaries.
+- ❌ **Don't skip the per-paper validation gate.** Batching validation across multiple papers means errors compound silently.
+- ❌ **Don't ask the agent to also build the Excel.** Excel build is a separate, single, deterministic step after all JSONs exist — keep it out of the per-paper agent's scope.
+- ❌ **Don't reuse the same agent across waves via SendMessage.** Each new wave should be a fresh agent so the context budget resets. SendMessage continues the same agent and inherits any token usage already accumulated.
+- ❌ **Don't run the structural validation only.** Pair it with a content cross-check on a sample paper from each wave (spot-check critical-analysis columns 18/19/20 for depth, and dataset-spec columns 04/06/13/14/16 for traceability).
+
+### 6.4 Main-thread responsibilities during a wave
+
+While agents run in background, the main thread:
+1. Waits for completion notifications (does NOT read agent transcript files — they will overflow context).
+2. Can check file existence to estimate progress (`ls _shared/NSRE-NNN.json`) but cannot evaluate content from filenames alone.
+3. After each agent returns, runs the structural validation Python snippet on the full wave batch (see section 6.2.7).
+4. If any JSON fails validation, re-dispatch the specific paper(s) to a new single-paper agent with the failure mode explained.
+5. Spot-checks col_18, col_19, col_20 depth on at least one paper per wave to confirm depth has not drifted.
+6. Logs each wave's status in `STATE.md` / session log per CLAUDE.md root rules.
+7. Defers the Excel build until ALL selected papers in the folder have validated JSONs.
+
+### 6.5 Realistic throughput expectation
+
+- One subagent processing 10 papers takes roughly **30–40 minutes of wall-clock time** at the protocol's mandated depth (two reads per paper + per-column reasoning + validation).
+- Two agents in parallel produce 20 papers per wave in the same wall-clock window.
+- For a typical conference/journal folder with ~110 papers to deep-review, expect **6 waves × ~35 minutes ≈ 3.5–4 hours of wall-clock time**.
+- Token cost per wave is substantial (~500K tokens per agent × 2 agents = ~1M tokens per wave) — this is the explicit price of quality and is the trade the user has authorised.
+
+### 6.6 If quality drops on a particular wave
+
+Signs of quality drift (caught during the spot-check step):
+- col_18 / col_19 / col_20 each under ~500 characters of text.
+- col_21–col_34 missing sub-question answers (e.g., col_21 only addressing A1, A2 and skipping A3–A9).
+- Numbers in col_16 without table references.
+- col_35 saying "no issues" when MinerU clearly had figure-extraction trouble.
+
+Remediation: re-dispatch the affected paper(s) to a fresh single-paper agent with the failure mode quoted in the new briefing. Do NOT try to patch in-place — a re-do at full depth is faster than incremental edits and preserves analytical coherence.
+
+### 6.7 When a paper has no MinerU markdown
+
+- Try the PDF fallback (`papers/ieee_<arnumber>.pdf`) via the `Read` tool (it accepts PDFs).
+- If the PDF is also missing or unreadable: STOP, log the skip in `_shared/doubts.txt` with reason, and do not create a half-filled JSON.
+- Confirmed unrecoverable papers (e.g., NSRE-028 in the IEEE NSRE folder had no arnumber and no PDF) should be permanently logged in `doubts.txt` so future runs don't re-attempt them.

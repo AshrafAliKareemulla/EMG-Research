@@ -70,3 +70,110 @@ OTHER 739 / FEATURE_EXTRACTION 365 / PREPROCESSING 129 / TRANSFORMERS 115 / DEEP
 - For Track 2 (DL): use `MR_DEEP_LEARNING` + `MR_TRANSFORMERS` + `MR_MAMBA_SSM` + `MR_OTHER_ARCH` + `MR_FOUNDATION_LLM`.
 - For cross-cutting goals (LOSO / transfer / cross-dataset): use `MR_CROSS_SUBJECT_LOSO` + `MR_TRANSFER_LEARNING` + `MR_CROSS_DATASET` + `MR_DISTILLATION` + `MR_DATA_AUGMENTATION`.
 - Re-run `consolidate_summary.py` after any upstream classifier change — script is idempotent and pulls fresh from the 19 venue xlsx files.
+
+## Session 3 — 2026-05-28
+**Focus:** Deep literature review of all 57 score-3 abstract-rated papers in the IEEE EMBC folder (7_EMBC).
+
+**Done:**
+- Confirmed 57 papers with Q9=3 from EMBC_abstract_screening.xlsx (341 total; score breakdown: 5→21, 4→54, 3→57, 2→65, 1→127, 0→17).
+- All 57 papers had valid MinerU markdown files — no PDF fallbacks needed.
+- Set up `7_EMBC/_shared/` folder; copied and configured `build_deep_review_excel.py` (PREFIX=EMBC, OUT_FILENAME=EMBC_deep_review.xlsx).
+- Ran 3 waves of 2 parallel background agents each (6 agents total):
+  - Wave 1A: EMBC-005 to EMBC-070 (10 papers) ✅
+  - Wave 1B: EMBC-077 to EMBC-127 (10 papers) ✅
+  - Wave 2A: EMBC-128 to EMBC-160 (10 papers) ✅
+  - Wave 2B: EMBC-168 to EMBC-208 (10 papers) ✅
+  - Wave 3A: EMBC-211 to EMBC-287 (10 papers) ✅
+  - Wave 3B: EMBC-302 to EMBC-336 (7 papers) ✅
+- All 57 JSONs passed full structural validation (39 keys, no blanks, no extras).
+- Built EMBC_deep_review.xlsx at the folder root (57 rows, 38 columns).
+
+**Key inconsistencies flagged across waves:**
+- EMBC-211: Abstract states rank-5 accuracy=99.6%; Section III states 96.2%.
+- EMBC-234: r² boxplot values differ from text medians (OCR approximation).
+- EMBC-151: Abstract has impossible std dev > mean for a correlation coefficient (paper typo).
+- EMBC-331: Table I shows 7 subject rows but paper states N=8 subjects collected.
+- EMBC-107: Internally contradictory sentence mixing aquatic vs on-land accuracy values.
+
+**High-value follow-ups identified:**
+- EMBC-029: Online TAC Test framework; offline-online accuracy gap directly relevant to Track-1 methodology.
+- EMBC-042: Public code at https://github.com/adwi592/GPT-EMG-Analyser/ — LLM-automated feature extraction.
+- EMBC-135: HYSER public dataset; MU spatial channel selection applicable to EMAHA.
+- EMBC-153: emg2vec SSL pretraining framework — highly applicable to Track-2 ADL pipeline.
+- EMBC-177: Public dataset+code on GitHub; paper cites EMAHA-DB1 directly.
+- EMBC-192: LocoD public dataset + code; probability-rejection post-processing reusable for Track-1 LDA.
+- EMBC-250: 3D CNN for 14-DoF HD-sEMG convolutive decoding.
+- EMBC-287: LSTM on public NinaPro datasets.
+- EMBC-331: PyTorch code at https://github.com/mufengjun260/MCSHRI; 7 ML + 2 DL baseline comparison.
+
+**Notable findings for our ADL research:**
+- EMBC-302: Electrode ID permutation catastrophic (drops to ~20% accuracy) — need ID verification in EMAHA sessions.
+- EMBC-336: LOGD (Logarithm Detector) is top-tier time-domain feature alongside WFL/MAV/RMS — underused in literature, should add to Track-1 feature set.
+- EMBC-127: LOSO regression drops 33pp vs within-subject — strong quantitative cross-subject degradation evidence.
+- EMBC-202: Forearm EMG degrades less across days than wrist EMG — validates EMAHA forearm placement.
+
+**Next:**
+- Deep review of score-4 and score-5 EMBC papers when requested (54 + 21 = 75 papers).
+- Consider building a cross-venue comparison Excel once other folders are also reviewed.
+
+---
+
+## Session 3 — 2026-05-29 — EMBC score-4/5 deep review
+
+**Goal:** Deep-review all abstract-score 4 and 5 papers in `7_EMBC` (score-3 already done); cross-check the existing 3★ work first.
+
+**Done:**
+- Cross-checked the 57 pre-existing score-3 JSONs: all structurally valid (39 keys, no empties), avg ~23K content chars. Clean.
+- Deep-reviewed **20 score-5** + **54 score-4** = 74 papers via parallel background subagents (per §6 recipe; smaller 4-paper batches mid-run due to recurring socket/API drops + one account session-limit pause). Every JSON validated structurally + content-spot-checked.
+- **EMBC-050** (ar=11252918) SKIPPED — no mineru markdown AND no PDF; logged in `_shared/doubts.txt` (unrecoverable per §6.7).
+- Full-folder sweep: **131 JSONs, 0 structural problems** (s5 20/20, s4 54/54, s3 57/57).
+- Rebuilt `EMBC_deep_review.xlsx` (133 rows × 38 cols, banner "131 papers (abstract score >= 3)").
+
+**Quality:** new JSONs run 27–44K content chars; col_18 ~1.7–2.4K, col_20 ~1.0–1.5K. Content spot-checks (EMBC-237, 337) verified numbers trace to source tables.
+
+**Notable inconsistencies flagged (gold per protocol):**
+- EMBC-239 ViT-HGR: abstract pairs 84.62% with 78,210 params, but Table II shows that accuracy = 340,866-param model.
+- EMBC-045: abstract 0.85/0.87 accuracy unsupported — Table I shows 0.49–0.65.
+- EMBC-228: fabricated "online accuracy 99.3%" row (Discussion admits no online test); leaky split.
+- EMBC-304: "inter-subject" claim but CV is by-trial within subject; circular GGS segmentation ground truth.
+- EMBC-266 / EMBC-298 / EMBC-330: optimization-on-eval-metric leakage / window-overlap leakage / train-on-validation typo.
+
+**High-value for our ADL work:** EMBC-101 (new public EMAHA-DB7 + pace/position robustness benchmark), EMBC-108 (cross-subject variance-transfer for LOSO calibration), EMBC-096 (cross-subject disentanglement on Hyser), EMBC-145 (genuine LOSO over 27 subjects), EMBC-261/278 (Track-1 feature/classifier benchmarks), EMBC-260 (mixup augmentation), EMBC-008 (public MyoBM-Net code).
+
+**Next:**
+- Move to the next venue's deep review when requested (NSRE/Sensors/Access/I&M/BMI remain).
+
+---
+
+## Session — 2026-05-29 — Folder 20 (Dataset_IEEE_Command_Search) deep review COMPLETE
+
+**Mode:** User explicitly required main-thread, one-paper-at-a-time review (NO subagents), full depth, quality over speed.
+
+**Done:** Deep-reviewed all 18 abstract-score-3/4/5 papers in `20_Dataset_IEEE_Command_Search` (prefix DAT). Set up `_shared/` (copied JSON template + build script), wrote DAT-001/003/004/005/006/007/009/010/011/012/013/014/015/016/017/020/021/022 JSONs (39 keys each, all structurally validated, 14.5–26.4K content chars; scaled to paper substance). Built `DatasetSearch_deep_review.xlsx` (18 rows × 38 cols, sorted 5s→4s→3s).
+
+**Worklist (score order):** s5 = DAT-001,004,006,007,010,012,014,015,017 ; s4 = DAT-003,005,011,013,016,020,022 ; s3 = DAT-009,021. (Excluded s1/s2: DAT-002,008,018,019.)
+
+**Highest-value for our ADL research:**
+- **DAT-015 = EMAHA-DB1 — OUR PRIMARY DATASET.** Baselines to beat: cubic-SVM (SVM3) + F5 → 75.39% (22-class) / + F2 → 83.21% (FAABOS), within-subject; EMGHandNet (CNN+BiLSTM) UNDERperforms SVM3 (73.34%). **Central open problem: LOSO collapses to 58.59% (FAABOS) — the inter-subject gap to attack.**
+- Public robustness benchmarks usable alongside EMAHA: **DAT-014 SeNic** (8-ch, 36 subj, 5 non-ideal factors, quantified electrode-shift angles), **DAT-016 MyoBit** (16-ch semi-dense, 9 non-ideal factors, +IMU), **DAT-017** (fully open wrist-sEMG + toolbox + SD/CD/CS benchmark + domain adaptation).
+- Method donors: DAT-007 (Scheme&Englehart feature robustness: at ≤6 ch add WAMP to Hudgins TD), DAT-006 (window/overlap/kernel: 75% overlap + kernel-7; window length matters more at low channel count), DAT-022 (≥5 reps/position for CNN position-invariance; unbalanced data HURTS LDA), DAT-005 (~1/3 data / ≈2 reps fine-tuning suffices), DAT-020 (electrode-geometry augmentations: all-opposite + channel-switch help; mirror/malfunction hurt), DAT-013 (DCGAN aug + DTW/FFT-MSE realism), DAT-011 (MIA detect-then-denoise; synthetic-MIA generator), DAT-010 (COZDAL frequency-split + CBAM), DAT-021 (MovePort multimodal EMG+IMU+MoCap+IPS).
+
+**Inconsistencies flagged (gold per protocol):**
+- DAT-010 COZDAL: calls pooled-all-subjects-in-train-and-test "subject-independent" (it is the opposite) → headline 95.3/98.8% are within-subject upper bounds.
+- DAT-009: per-sample classification + random 50/50 SAMPLE split → severe leakage; ~98% accuracy is an artifact (cautionary example).
+- DAT-004: Ninapro gesture count 19 vs 17; latency 3.3 vs 2.45 ms; 2D-CNN size < 1D-CNN despite 2× params.
+- DAT-012: 5 vs 6 output classes; 26-dim vs 4×8=32 features; implausible 96.52% on 52-class DB1.
+- DAT-006: figure overlap-label reversal; delay tables mislabeled "seconds" (are ms); duplicated DB3 rows.
+- DAT-007: ALL result figures garbled in MinerU (impossible negative errors) — relied on prose findings; flagged PDF fallback as route to exact numbers.
+
+**Extraction notes:** MinerU text/tables clean across all 18; recurring issue = garbled figure/heatmap/scatter extractions (DAT-006/007/014/016/017/021) — used prose + clean tables, ignored garbled figures, all flagged in col_35. No PDF fallback needed (text sufficed for the findings).
+
+**Memory:** Corrected `dataset_senic_structure.md` — "Angle xlsx" = electrode-SHIFT angles (not joint kinematics; SeNic has none); p0–p10 are 11 shift POSITIONS (not postures); h30–h35 = fatigue-enhanced cohort.
+
+**Next:** next venue deep review when requested (NSRE/Sensors/Access/I&M/BMI remain).
+
+---
+
+## Session — Dataset Infrastructure (L1 pipeline) — 2026-06-15, ~23:45
+
+Built L1 pipeline + ingested ninapro_db1, ninapro_db2, emaha_db1 (canonical `signals.h5`+`manifest.parquet`); DB3 empty. Reusable loader/splitter in `semg/`. Fixed normalization leakage (`Normalizer` modes, `global` default) + added adapter versioning/device metadata. Smoke test ALL PASSED on GPU. Details: design doc `semg-datasets/semg-dataset-setup.md` (§15) + `data/L1/<ds>/STATE.md`. Next: Track 1 (reproduce EMAHA SVM / LOSO 58.59%) or Track 2 (1D-CNN LOSO).

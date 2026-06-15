@@ -3,27 +3,23 @@
 
 ## First: Read USER-REQUIREMENTS.md
 
-show the 
 
 
 Read `.claude/USER-REQUIREMENTS.md`. It tells you what are the user requirements and why this repository was started in first place. Only then read the area-specific files relevant to your current task.
 
-## First: Read State
+## First focus on literature review part and follow the instructions in @.claude/literature-review/deep-literature-review-instructions.md properly. These instructions are the most important ones. Do exactly as stated by the user.
 
-Read `STATE.md` (20 lines). It tells you what phase we're in and what to do next.
-Only then read the area-specific files relevant to your current task.
 
-## File Roles
 
-| File | Purpose | When to read |
-|------|---------|-------------|
-| `STATE.md` | Progress index, next steps | **Every session, first thing** |
-| `.claude/USER-REQUIREMENTS.md` | Researcher goals & background | When you need research context |
-| `literature-review-papers/engineering-questions.md` | The 10 questions this research repo should answers | When designing experiments or doing literature review |
-| `plans/ROADMAP.md` | Phased research plan | When planning next work |
-| `.claude/sessions/SESSIONS.md` | Append-only session history | When you need past context |
+## Dataset infrastructure (read these before any dataset/ML/DL work)
 
-Each major directory has its own `CLAUDE.md` with task-specific instructions.
+Canonical data lives in `data/L1/<dataset>/` as `signals.h5` + `manifest.parquet`. To understand the setup, read in this order:
+
+1. `semg-datasets/semg-dataset-setup.md` — the master design (storage, lazy loading, splits, normalization modes; **§15 = external-review fixes**).
+2. `data/L1/<dataset>/STATE.md` — per-dataset rationale (what/how/why). Done: `ninapro_db1`, `ninapro_db2`, `emaha_db1` (primary). NinaPro DB3 = empty (amputee set, re-download).
+3. Code: adapters `semg/adapters/`, loader `semg/data/`, splitter+`Normalizer` `semg/splits/`, smoke test `scripts/smoke_test.py`.
+
+Key rules: store native (resample/filter at load time); LOSO/within-subject = manifest queries; **`Normalizer` `mode="global"` for any cross-subject claim**; one adapter per dataset (bump `adapter_version` on logic change).
 
 ## Five Rules
 

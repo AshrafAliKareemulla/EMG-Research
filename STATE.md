@@ -1,15 +1,15 @@
 # STATE.md
 
 **Phase:** 1.5 — Literature Review (consolidation + must-read ranking complete)
-**Updated:** 2026-04-14
-**Session count:** 2
+**Updated:** 2026-05-29
+**Session count:** 3
 
 ## Area Status (one line each — details in area status files)
 
 | Area | Status | Detail file |
 |------|--------|-------------|
-| Literature review | Phase 1.5 done: 1,855 papers consolidated → MASTER_SUMMARY.xlsx with engineering summaries + 16 must-read sheets | `literature-review-papers/STATUS.md` |
-| Datasets | Not started | `datasets/CATALOG.md` |
+| Literature review | Phase 2 in progress. EMBC deep review COMPLETE (131 JSONs). **Folder 20 (Dataset_IEEE_Command_Search) deep review COMPLETE 2026-05-29: all 18 score-3/4/5 papers (9×s5 + 7×s4 + 2×s3) reviewed by main thread one-by-one — DAT-001..022 JSONs in _shared/ (all 39-key validated, 14.5–26.4K chars) + DatasetSearch_deep_review.xlsx built (18 rows × 38 cols). Key papers: DAT-015=EMAHA-DB1 (our primary dataset; SVM3+F5 75.39%/FAABOS 83.21%, LOSO 58.59% = central gap), DAT-014=SeNic + DAT-016=MyoBit + DAT-017 (public robustness benchmarks).** Next venue pending. | `literature-review-papers/STATUS.md` |
+| Datasets | L1 ingest in progress. **NinaPro DB1** (✓ 294 MB, 28,161 trials), **DB2** (✓ 10 GB, 23,640 trials), **EMAHA-DB1** (✓ 2.35 GB, 15,736 trials; primary ADL dataset, 22-class + FAABOS + orig train/test split preserved) converted to canonical L1 via `semg/adapters/`. DB3 empty (amputee set — re-download). Reusable loader/splitter (`semg/data/`, `semg/splits/`) built; **smoke test PASSED locally on EMAHA** (loader+LOSO+normalizer). See per-dataset `data/L1/<name>/STATE.md`; design in `semg-datasets/semg-dataset-setup.md`. | `datasets/CATALOG.md` |
 | ML experiments | Not started | `experiments/ml-classical/STATUS.md` |
 | DL experiments | Not started | `experiments/dl-advanced/STATUS.md` |
 | LOSO | Not started | `experiments/loso/STATUS.md` |

@@ -1,0 +1,103 @@
+# PROFILE (Paper 2) — pinned dependencies (X15 reproducibility; buries the "no dep pinning" limitation).
+# Versions are those the results + the ground-truth suite were validated against (Python 3.11.8).
+# On Ubuntu:  python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+numpy==1.26.4
+scipy==1.13.0
+scikit-learn==1.3.2
+pandas==2.2.1
+joblib==1.4.0
+h5py==3.16.0
+pyarrow==24.0.0
+matplotlib==3.8.0
+
+# Optional — only used by X11's mixed-effects cross-check (a cohort-clustered bootstrap is the
+# primary and needs no extra dependency; X11 degrades gracefully if statsmodels is absent).
+# statsmodels==0.14.2
+
+
+Good catch on both counts — checking the paths turned up two real things.
+
+What I found
+
+Paths (verified against SEN-020 + the root STATE.md, not assumed):
+- Data: /home/honors/Ashraf_Ali_2025_Batch/data/L1 — this is already the default in bl_config.py, so no export SEMG_L1_ROOT is needed. My earlier instruction was harmless but redundant.
+- Code: /home/honors/Ashraf_Ali_2025_Batch/sEMG-Research-Latest/experiments-dl/BENCH-LOSO/
+
+Two fixes that came out of it:
+1. The cache had nowhere to go but the code tree. Added $SEMG_BL_CACHE to redirect it, plus a preflight that validates the L1 path, the dataset list, and free disk before writing a byte. It also corrected my disk estimate: 20.5 GB, not 34 (fp16 halves GrabMyo and DB2).
+2. 20 cores changes things. Killing the DataLoader workers removed the old CPU thrash but created a new risk: numpy/BLAS and torch each grab all 20 cores by default, so 4 notebooks would spawn ~80 threads over 20 cores. Every runner now pins its threads before numpy/torch import (BLAS reads the env var at import — setting it later is a no-op): 4 GPU notebooks × 2 = 8, bl_ml (LDA's BLAS solve) = 4, ~8 left for Jupyter/OS.
+
+---
+Files to copy
+
+Into the existing BENCH-LOSO/ folder on the box — 14 new files:
+
+bl_threads.py  bl_cache.py  bl_config.py  bl_data.py
+bl_train.py    bl_run.py    bl_sweep.py   bl_ml.py    bl_
+build_baseline_notebooks.py
+BASELINE_1.ipynb  BASELINE_2.ipynb  BASELINE_3.ipynb  BAS
+Plus docs if you want them: BASELINE.md, STATE.md, PLAN.md, RESULTS.md.
+
+Already on the box, unchanged, still required: models.py, data.py.
+Do NOT copy: cache/, runs_baseline/ — I deleted both loca
+
+What to run, in order
+
+cd /home/honors/Ashraf_Ali_2025_Batch/sEMG-Research-Lates
+
+# 1. build caches ONCE, serially (preflight checks paths g)
+python -u bl_cache.py --all
+
+# 2. PARITY + SPEED GATE — run these three, then STOP and read the output
+python -u bl_run.py --dataset emaha_db1  --model cnn1d --rop
+python -u bl_run.py --dataset emaha_db1  --model cnn1d --protocol loso --test_subject 1 --rest_mode drop
+python -u bl_run.py --dataset ninapro_db4 --model ecnn  -keep
+
+# 3. if the gate passes: Run-All BASELINE_1..4 side by si
+
+# 4. after all four finish, once, in a terminal:
+python bl_merge.py --xlsx
+
+The gate is two independent checks. Numbers must match Phase 1 (0.589/0.513, 0.297/0.220, 0.750/0.581 — a few 0.001 of drift is fine). And the
+bottleneck must actually be gone: data_on_gpu=True, data_l several times below Phase 1's 911s / 1391s.
+
+If data_frac is still high, my ~14h estimate is really ~1utput rather than launching four notebooks at it.
+
+Engine is re-verified end-to-end on the laptop after all andom protocol, ML floor, merge, thread presets, and acheck that smoke rows can't fool --skip_existing).
+
+
+
+
+20/20 — no gaps. Yes, the state is now fully updated. Here's exactly what I changed:
+
+What I updated in the docs
+
+STATE.md:
+- Status line — was stale (READY TO DISPATCH, 48/48, "nothing is running"). Now correctly says Batch 1 running on the box, Batch 2 built and waiting, 62/62.
+- New §4a — the end-to-end order of operations, as an 11-step map: Batch 1 finishes → copy back → ledger/validate/read verdicts → update docs → copy code to box → run Batch 2 → copy back → update docs again → figures → write-up.
+- §4b retitled "use for BOTH batches" — it's the same sequence each time, so it isn't duplicated.
+- §4d — Batch 2 with the three experiments, why each exists, the exact commands, the costs, and the batch-safety rule.
+- History entries for the Batch 1 dispatch and the Batch 2 build — including the three design flaws the ground truth and smoke caught.
+- A retraction entry, because this project has been burned by exactly this before: I wrote down that I wrongly claimed a flat scaling law from meta.how_many_subjects (it measures MMD-estimate stability, not accuracy), that it's false, and that nobody may quote a scaling result until T11 runs.
+
+RESEARCH_PREVIEW.md:
+- Novelty map extended with T9/T10/T11 — what each buys if it succeeds, what we publish if it fails, plus the same "do not quote scaling before T11" warning.
+
+CLAUDE.md:
+- Cost table now covers T9/T10/T11, with the batch-safety rule: T9/T10 build new frames, never run them alongside T1–T8; T11 is read-only and safe any time.
+
+So, concretely, what you do
+
+Right now: nothing. Batch 1 is running. Don't touch it.
+
+When Batch 1 finishes:
+1. Bring back results/v2/ and logs/.
+2. I run the ledger, validate, and read the 8 pooled.json verdicts — T7 and T1 first, because they gate how every other number is read.
+3. I update STATE.md + RESEARCH_PREVIEW.md from the JSONs (not
+
+Then Batch 2:
+4. Copy tsuite/, cli/build_ledger.py, and the 3 .md files to the box.
+5. Run the three commands in STATE.md §4d (3 terminals).
+6. Bring back the same two folders. Repeat step 2–3.
+
+Then: the 5 missing figures and the N1 proof appendix — the last things standing between you and the write-up.
